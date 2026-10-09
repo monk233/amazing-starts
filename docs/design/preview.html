@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="zh-CN" data-world="folio" data-mode="light">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>amazing-starts · 两种视觉方向</title><link rel="stylesheet" href="preview.css"></head>
+<body>
+<header class="review-bar">
+  <div class="review-intro"><strong>amazing-starts / 视觉草案</strong><span>演示数据 · 不连接 GitHub · 不发送 AI 请求</span></div>
+  <div class="review-controls"><div class="segmented" aria-label="艺术方向"><button data-world="folio" aria-pressed="true">纸页收藏馆</button><button data-world="observatory" aria-pressed="false">轨道观测室</button></div><label class="mode-control">明暗<select id="mode" aria-label="明暗模式"><option value="light">亮色</option><option value="dark">暗色</option><option value="system">跟随系统</option></select></label></div>
+</header>
+<div class="review-description" id="direction-description">纸页收藏馆：暖纸、森林绿与编辑式排版。让整理收藏，像翻阅一本私人目录。</div>
+<div class="workbench">
+  <aside class="rail">
+    <a href="#library" class="brand"><span class="brand-mark" data-icon="star"></span><span>amazing<span class="brand-tail">-starts</span></span></a>
+    <p class="brand-caption">你自己的开源收藏馆</p>
+    <nav aria-label="页面预览"><a href="#library" data-view="library"><span data-icon="collection"></span>所有收藏<span class="nav-count">6</span></a><a href="#detail" data-view="detail"><span data-icon="repository"></span>仓库详情</a><a href="#settings" data-view="settings"><span data-icon="settings"></span>设置与偏好</a></nav>
+    <div class="rail-section"><h2>分类</h2><button data-filter="全部"><i class="folder-dot all"></i>全部项目</button><button data-filter="AI"><i class="folder-dot"></i>AI 与知识工具</button><button data-filter="设计"><i class="folder-dot blue"></i>设计与创作</button><button data-filter="工具"><i class="folder-dot gold"></i>日常好工具</button></div>
+    <div class="rail-note"><span data-icon="branch"></span><p>整理方式由你定义。<br>分类在 GitHub，<br>私人笔记在此设备。</p></div>
+    <div class="local-account"><span class="avatar">A</span><div><strong>本地演示空间</strong><small>未连接真实账号</small></div><span class="connection-dot"></span></div>
+  </aside>
+  <main id="main" tabindex="-1"></main>
+</div>
+<footer class="preview-footer"><span>这是交互视觉稿，不是已实现的产品功能。</span><span>可切换方向、明暗、页面；列表支持本地搜索与筛选。</span></footer>
+<div class="toast" id="toast" role="status" hidden></div>
+<script src="preview.js"></script>
+</body></html>

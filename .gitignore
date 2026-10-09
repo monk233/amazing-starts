@@ -1,0 +1,11 @@
+node_modules/
+.output/
+.wxt/
+coverage/
+.impeccable/review/
+artifacts/
+*.log
+.env
+.env.*
+!.env.example
+.DS_Store
