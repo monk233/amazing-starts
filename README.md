@@ -1,4 +1,4 @@
-# amazing-starts
+# Amazing Stars
 
 让 GitHub Stars 的管理与浏览变得 amazing。
 
@@ -11,7 +11,7 @@
 已实现：
 
 - WXT、React、TypeScript、Manifest V3 工程及锁定的依赖版本。
-- 后台、GitHub 内容脚本、弹窗和独立管理页入口。
+- 后台、GitHub 内容脚本与独立管理页入口；点击工具栏图标直接打开管理页，目前没有工具栏弹窗。
 - 按账号隔离的 IndexedDB 基础结构、事务替换与版本保护。
 - 默认会话级凭证存储、可选持久存储封装及受信任上下文限制。
 - UI 与 GitHub 内容脚本分开的消息允许列表，不提供任意请求或凭证读取接口。
@@ -24,7 +24,7 @@
 
 尚未实现：Lists 创建、编辑与归属写入、AI 模型生成调用、自动分类、手册、自然语言检索、项目对比和动态跟踪。
 
-项目名称保留为 `amazing-starts`，所管理的 GitHub 功能称为 Stars。
+项目名称使用 `Amazing Stars`，产品所管理的 GitHub 功能称为 Star。两者同名但含义不同：前者是产品与仓库名，后者指 GitHub 的 Star 功能。
 
 ## 本地开发
 
@@ -73,8 +73,8 @@ pnpm preview:design
 
 ## 文档
 
-- [产品设计](docs/superpowers/specs/2026-10-09-amazing-starts-design.md)
-- [实施计划](docs/superpowers/plans/2026-10-09-amazing-starts-implementation.md)
+- [产品设计](docs/superpowers/specs/2026-10-09-amazing-stars-design.md)
+- [实施计划](docs/superpowers/plans/2026-10-09-amazing-stars-implementation.md)
 - [视觉候选](docs/design/visual-direction.md)
 - [GitHub Access Token 配置](docs/setup/github-oauth.md)
 - [AI 服务配置准备](docs/setup/ai-provider.md)

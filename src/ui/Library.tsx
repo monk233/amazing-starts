@@ -4,6 +4,7 @@ import type { Repository } from '../data/types';
 import { filterRepositories, initialFilters, repositoryUrl, type Filters, type Library as LibraryData } from '../library/library';
 import { request } from './client';
 import { Brand, StarMark } from './Brand';
+import { InfoTip } from './InfoTip';
 import { WorkspaceIcon } from './WorkspaceIcon';
 import { SelectMenu } from './SelectMenu';
 import './library.css';
@@ -23,10 +24,9 @@ function ProjectDetail({ repo, data }: { repo: Repository; data: LibraryData }) 
     <div className="page-title"><div className="detail-heading"><span className="repo-monogram">{(name || owner || '').slice(0, 2)}</span><div><small>{owner} /</small><h1 id="project-title" ref={heading} tabIndex={-1}>{name || owner}</h1></div></div>{url && <a className="outline-button" href={url} target="_blank" rel="noopener noreferrer"><WorkspaceIcon name="external"/>GitHub</a>}</div>
     <p className="detail-description">{repo.description || '该项目暂无描述。'}</p>
     <div className="view-tabs"><span className="active">项目概览</span><button className="small-link" onClick={close}>返回收藏</button></div>
-    <div className="detail-columns"><article className="article"><h2>项目信息</h2>
+    <div className="detail-columns"><article className="article"><h2>项目信息<InfoTip label="数据来源说明">以上信息来自本地快照，可能与 GitHub 当前状态不同。</InfoTip></h2>
       <dl className="project-facts"><div><dt>主要语言</dt><dd>{repo.language || '未标注'}</dd></div><div><dt>可见性</dt><dd>{repo.visibility === 'private' ? '私有' : '公开'}</dd></div><div><dt>项目状态</dt><dd>{repo.archived ? '已归档' : '未归档'}</dd></div><div><dt>收藏时间</dt><dd>{formattedDate(repo.starredAt)}</dd></div><div><dt>最近推送</dt><dd>{formattedDate(repo.pushedAt)}</dd></div><div><dt>本地快照</dt><dd>{formattedDate(repo.fetchedAt)}</dd></div></dl>
       <h2>GitHub Topics</h2><div className="tags">{repo.topics.length ? repo.topics.map(topic => <span className="tag" key={topic}>{topic}</span>) : <span className="note">暂无 Topics。</span>}</div>
-      <p className="source-note">以上信息来自本地快照，可能与 GitHub 当前状态不同。</p>
     </article><aside className="side-note"><h2>它在我的收藏里</h2><div className="dimension"><h3>GitHub 分类</h3><div className="tags">{lists.length ? lists.map(list => <span className="tag" key={list.id}>{list.name}{list.isPrivate ? ' · 私有' : ''}</span>) : <span className="note">尚未归入 List。</span>}</div></div>
       {data.dimensions.map(dimension => { const assigned = tags.filter(tag => tag.dimensionId === dimension.id); return assigned.length ? <div className="dimension" key={dimension.id}><h3>{dimension.name} · 本地</h3><div className="tags">{assigned.map(tag => <span className="tag" key={tag.id} title={data.repositoryTags.find(link => link.repositoryId === repo.id && link.tagId === tag.id)?.source === 'ai' ? 'AI 分类' : '手动标记'}>{tag.name}</span>)}</div></div> : null; })}
       {!tags.length && <p>尚未添加本地标签。</p>}<div className="local-label"><WorkspaceIcon name="lock"/>维度与标签仅保存在本地</div>
@@ -140,7 +140,7 @@ export function Library({ route, children, notice, github }: { github: GitHubCon
     </aside>
     <main ref={main} className={'workspace-main' + (route === 'settings' || isDetail ? ' document-view' : '')}>
       {notice}
-      {route === 'settings' ? <div className="document-content"><div className="page-title"><div><span className="eyebrow">工作区</span><h1>设置与偏好</h1><p>管理外观、GitHub 连接与 AI 服务。</p></div><a className="outline-button" href="#library">返回收藏<WorkspaceIcon name="arrow"/></a></div><div className="workspace-settings">{children}</div></div>
+      {route === 'settings' ? <div className="document-content"><div className="page-title"><div><span className="eyebrow">工作区</span><h1>设置与偏好</h1><p>管理外观、GitHub 连接、AI 服务与数据边界。</p></div><a className="outline-button" href="#library">返回收藏<WorkspaceIcon name="arrow"/></a></div><div className="workspace-settings">{children}</div></div>
       : isDetail && selected && data ? <div className="document-content"><button className="back-link" onClick={closeDetail}><span aria-hidden="true">←</span> 返回收藏</button><ProjectDetail repo={selected} data={data}/></div>
       : <section className="library" aria-labelledby="library-title">
         <header className="library-header">
@@ -159,7 +159,7 @@ export function Library({ route, children, notice, github }: { github: GitHubCon
           }}>
             <summary><WorkspaceIcon name="filter"/>筛选{extraCount > 0 && <span className="filter-count">{extraCount}</span>}</summary>
             <div className="filter-panel">
-              <div className="filter-panel-heading"><h2>筛选收藏</h2><button className="icon-button" aria-label="关闭筛选" onClick={() => { if (filterPanel.current) { filterPanel.current.open = false; filterPanel.current.querySelector('summary')?.focus(); } }}><WorkspaceIcon name="close"/></button></div>
+              <div className="filter-panel-heading"><h2>筛选收藏<InfoTip label="标签组合说明">同一维度满足任一标签，不同维度需同时满足。</InfoTip></h2><button className="icon-button" aria-label="关闭筛选" onClick={() => { if (filterPanel.current) { filterPanel.current.open = false; filterPanel.current.querySelector('summary')?.focus(); } }}><WorkspaceIcon name="close"/></button></div>
               <fieldset disabled={loading || !data?.repositories.length} className="filter-fields"><legend className="visually-hidden">项目条件</legend>
                 <div><span>主要语言</span><SelectMenu label="主要语言" value={filters.language} disabled={loading || !data?.repositories.length} options={[{ value: '', label: '全部语言' }, ...languages.map(language => ({ value: language, label: language })), { value: '__none', label: '未标注语言' }]} onChange={value => change({ language: value })}/></div>
                 <div><span>可见性</span><SelectMenu label="可见性" value={filters.visibility} disabled={loading || !data?.repositories.length} options={[{ value: '', label: '公开与私有' }, { value: 'public', label: '公开' }, { value: 'private', label: '私有' }]} onChange={value => change({ visibility: value })}/></div>
@@ -169,9 +169,8 @@ export function Library({ route, children, notice, github }: { github: GitHubCon
                 {data?.dimensions.map(dimension => <fieldset className="dimension" key={dimension.id} disabled={loading || !data.repositories.length}><legend>{dimension.name}</legend><div className="tags">
                   {data.tags.filter(tag => tag.dimensionId === dimension.id).map(tag => <button className="tag tag-filter" key={tag.id} aria-pressed={filters.tagIds.includes(tag.id)} onClick={() => change({ tagIds: filters.tagIds.includes(tag.id) ? filters.tagIds.filter(id => id !== tag.id) : [...filters.tagIds, tag.id] })}>{filters.tagIds.includes(tag.id) && <WorkspaceIcon name="check"/>}{tag.name}</button>)}
                 </div>{!data.tags.some(tag => tag.dimensionId === dimension.id) && <p className="note">暂无标签</p>}</fieldset>)}
-                {!!data?.dimensions.length && <p className="note">同一维度满足任一标签，不同维度同时满足。</p>}
               </div>
-              <div className="filter-panel-footer"><span>条件即时生效</span><button className="small-link" disabled={!extraCount} onClick={() => change({ language: '', visibility: '', archived: '', tagIds: [] })}>重置条件</button></div>
+              <div className="filter-panel-footer"><button className="small-link" disabled={!extraCount} onClick={() => change({ language: '', visibility: '', archived: '', tagIds: [] })}>重置条件</button></div>
             </div>
           </details>
           <div className="library-sort"><SelectMenu label="排序" value={filters.sort} disabled={!data?.repositories.length} options={[{ value: 'starred', label: '最近收藏' }, { value: 'updated', label: '最近推送' }, { value: 'name', label: '项目名称' }]} onChange={value => change({ sort: value as Filters['sort'] })}/></div>

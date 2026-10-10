@@ -1,0 +1,271 @@
+/* Settings workspace.
+   Structure: tabbed panels (one section at a time) instead of a long scroll.
+   Surfaces stay quiet — the only saturated colour belongs to the selected theme thumbnail. */
+
+.manager-workspace .settings-page { width: 100%; max-width: 1080px; }
+
+/* Tabs: numbered labels on a shared rule; the active tab owns the underline. */
+.manager-workspace .settings-tabs {
+  display: flex; flex-wrap: wrap; gap: 2px; margin: 0 0 36px; border-bottom: 1px solid var(--line);
+}
+.manager-workspace .settings-tabs button {
+  position: relative; display: inline-flex; align-items: baseline; gap: 9px;
+  padding: 12px 15px 13px; border: 0; border-radius: 6px 6px 0 0; background: transparent;
+  color: var(--muted); font-size: 13px; cursor: pointer;
+  transition: color 160ms ease, background-color 160ms ease;
+}
+.manager-workspace .settings-tabs button b {
+  font-family: var(--display); font-size: 10px; font-weight: 500; letter-spacing: .1em; color: inherit;
+}
+.manager-workspace .settings-tabs button:hover { color: var(--ink); background: var(--soft); }
+.manager-workspace .settings-tabs button[aria-selected="true"] { color: var(--ink); font-weight: 600; }
+.manager-workspace .settings-tabs button[aria-selected="true"] b { color: var(--accent); }
+.manager-workspace .settings-tabs button[aria-selected="true"]::after {
+  content: ""; position: absolute; inset: auto 0 -1px 0; height: 2px; border-radius: 1px; background: var(--accent);
+}
+.manager-workspace .settings-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* Panel: heading, then a single column of aligned blocks. */
+.manager-workspace .settings-panel { display: grid; gap: 30px; max-width: 880px; }
+.manager-workspace .settings-panel:focus-visible { outline: none; }
+.manager-workspace .settings-panel-head h2 {
+  font-family: var(--display); font-size: 24px; font-weight: 550; letter-spacing: -.035em; line-height: 1.3;
+  margin: 0 0 9px; text-wrap: balance;
+}
+.manager-workspace .settings-panel-head > p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.75; max-width: 62ch; }
+.manager-workspace .settings-panel-body { display: grid; gap: 34px; }
+.manager-workspace .settings-panel code {
+  font-family: "Cascadia Code", Consolas, monospace; font-size: .92em; padding: 1px 5px;
+  border: 1px solid var(--line); border-radius: 3px; background: var(--ground);
+}
+
+/* Fieldsets and legends replace the generic "card + shadow" rhythm. */
+.manager-workspace .settings-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.manager-workspace .settings-fieldset > legend {
+  padding: 0; margin: 0 0 18px; font-size: 11px; font-weight: 600; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--muted);
+}
+.manager-workspace .settings-fieldset[disabled], .manager-workspace .settings-fieldset > *:disabled { opacity: .6; }
+
+/* Theme picker: each option previews the palette it applies. */
+.manager-workspace .theme-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.manager-workspace .theme-card {
+  position: relative; display: grid; gap: 14px; padding: 14px 14px 16px; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 9px; background: var(--paper);
+  transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+}
+.manager-workspace .theme-card:hover { border-color: color-mix(in srgb, var(--muted) 55%, var(--line)); transform: translateY(-1px); }
+.manager-workspace .theme-card:active { transform: translateY(0); }
+.manager-workspace .theme-card:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+.manager-workspace .theme-card:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 3px; }
+.manager-workspace .theme-card > input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.manager-workspace .theme-card-copy strong { display: block; font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+.manager-workspace .theme-card-copy small { display: block; margin-top: 5px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+.manager-workspace .theme-check {
+  position: absolute; top: 12px; right: 12px; display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 5px; background: var(--accent); color: var(--accent-ink);
+  opacity: 0; transition: opacity 180ms ease;
+}
+.manager-workspace .theme-card:has(input:checked) .theme-check { opacity: 1; }
+.manager-workspace .theme-check svg { width: 14px; height: 14px; }
+
+/* Miniature of the workspace, painted with the candidate palette. */
+.manager-workspace .theme-thumb {
+  display: grid; grid-template-columns: 34% minmax(0, 1fr); height: 108px; overflow: hidden;
+  border: 1px solid var(--thumb-line); border-radius: 6px; background: var(--thumb-ground);
+}
+.manager-workspace .theme-thumb-rail {
+  display: grid; align-content: start; gap: 7px; padding: 11px 9px;
+  background: var(--thumb-rail); border-right: 1px solid var(--thumb-line);
+}
+.manager-workspace .theme-thumb-rail i { display: block; height: 5px; border-radius: 3px; background: color-mix(in srgb, var(--thumb-ink) 22%, transparent); }
+.manager-workspace .theme-thumb-rail i:first-child { width: 74%; height: 9px; background: var(--thumb-accent); }
+.manager-workspace .theme-thumb-rail i:nth-child(3) { width: 86%; background: color-mix(in srgb, var(--thumb-accent) 60%, transparent); }
+.manager-workspace .theme-thumb-body { display: grid; align-content: start; gap: 9px; padding: 13px 12px; }
+.manager-workspace .theme-thumb-body b { display: block; height: 6px; border-radius: 3px; background: color-mix(in srgb, var(--thumb-ink) 16%, transparent); }
+.manager-workspace .theme-thumb-body b:first-child { width: 58%; height: 12px; background: color-mix(in srgb, var(--thumb-ink) 62%, transparent); }
+.manager-workspace .theme-thumb-body b:nth-child(2) { width: 82%; }
+.manager-workspace .theme-thumb-body b:nth-child(3) { width: 30%; background: var(--thumb-accent); opacity: .9; }
+.manager-workspace .theme-thumb-body b:nth-child(4) { width: 70%; }
+
+.manager-workspace .theme-card[data-preview="folio"] {
+  --thumb-ground: #f5f4f0; --thumb-paper: #fdfcf9; --thumb-rail: #f1f0eb;
+  --thumb-ink: #292b27; --thumb-line: #e1e2da; --thumb-accent: #38483b;
+}
+:root[data-mode="dark"] .manager-workspace .theme-card[data-preview="folio"] {
+  --thumb-ground: #1b1c19; --thumb-paper: #22231f; --thumb-rail: #1e1f1b;
+  --thumb-ink: #eaeae3; --thumb-line: #3b3d34; --thumb-accent: #ced9bf;
+}
+.manager-workspace .theme-card[data-preview="observatory"] {
+  --thumb-ground: #f2f3f5; --thumb-paper: #fcfcfd; --thumb-rail: #eeeff2;
+  --thumb-ink: #2b303b; --thumb-line: #dde0e6; --thumb-accent: #3c4e68;
+}
+:root[data-mode="dark"] .manager-workspace .theme-card[data-preview="observatory"] {
+  --thumb-ground: #1b1e24; --thumb-paper: #22262d; --thumb-rail: #1e2228;
+  --thumb-ink: #e9ecf1; --thumb-line: #3b424d; --thumb-accent: #c6d3e5;
+}
+
+/* Light/dark choice: a single segmented control instead of three loose chips. */
+.manager-workspace .mode-segments {
+  display: inline-grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--ground);
+}
+.manager-workspace .mode-segment {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 40px; padding: 8px 16px; border-radius: 6px; cursor: pointer;
+  font-size: 12.5px; color: var(--muted); transition: background-color 180ms ease, color 180ms ease;
+}
+.manager-workspace .mode-segment input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.manager-workspace .mode-segment:hover { color: var(--ink); }
+.manager-workspace .mode-segment:has(input:checked) { background: var(--paper); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px #2028200d; }
+.manager-workspace .mode-segment:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.manager-workspace .mode-segment svg { width: 15px; height: 15px; }
+
+/* Field row: label, control — guidance moved into the info affordance. */
+.manager-workspace .field { display: grid; gap: 9px; max-width: 620px; }
+.manager-workspace .field + .field { margin-top: 26px; }
+.manager-workspace .field-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; }
+.manager-workspace .field-label { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+.manager-workspace .field-head > label { font-size: 13px; font-weight: 600; }
+.manager-workspace .field-link { display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); text-decoration: none; }
+.manager-workspace .field-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.manager-workspace .field-link svg { width: 13px; height: 13px; }
+.manager-workspace .checkbox-line { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.manager-workspace .legend-row { display: inline-flex; align-items: center; gap: 8px; }
+.manager-workspace .field-input {
+  width: 100%; min-width: 0; padding: 11px 12px; font: inherit; font-size: 13px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.manager-workspace .field-input:hover:not(:disabled) { border-color: color-mix(in srgb, var(--muted) 45%, var(--line)); }
+.manager-workspace .field-input:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent); }
+.manager-workspace .field-input:disabled { cursor: not-allowed; }
+.manager-workspace .field-help { margin: 0; color: var(--muted); font-size: 11.5px; line-height: 1.75; max-width: 62ch; }
+.manager-workspace .field-help a { text-decoration: underline; text-underline-offset: 3px; }
+.manager-workspace .checkbox-row { display: inline-flex; align-items: center; gap: 10px; font-size: 12.5px; }
+.manager-workspace .checkbox-row input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+/* Action rows keep buttons and their status on one baseline. */
+.manager-workspace .action-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.manager-workspace .action-row .button { min-height: 40px; }
+
+/* Status text: quiet, single line, never shouts. */
+.manager-workspace .inline-status { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--muted); font-size: 12px; }
+.manager-workspace .inline-status svg { width: 14px; height: 14px; }
+.manager-workspace .inline-error { margin: 0; color: var(--error); font-size: 12.5px; line-height: 1.7; }
+
+/* Connection state. */
+.manager-workspace .state-badge {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 9px; border-radius: 4px;
+  border: 1px solid var(--line); background: var(--ground); color: var(--muted); font-size: 11px;
+}
+.manager-workspace .state-badge.live { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); color: var(--ink); }
+.manager-workspace .state-badge.live i { background: var(--accent); }
+.manager-workspace .state-badge i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+.manager-workspace .state-badge.warn { border-color: color-mix(in srgb, var(--error) 35%, var(--line)); color: var(--error); }
+.manager-workspace .state-badge.warn i { background: var(--error); }
+
+/* Account entry: every block shares one left edge. */
+.manager-workspace .account { padding: 22px 0 0; border-top: 1px solid var(--line); }
+.manager-workspace .account + .account { margin-top: 26px; }
+.manager-workspace .account-head { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.manager-workspace .account-head h3 { margin: 0 4px 0 0; font-size: 16px; font-weight: 600; letter-spacing: -.02em; }
+.manager-workspace .account-avatar {
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px;
+  border: 1px solid var(--line); background: var(--ground); color: var(--muted);
+  font-family: var(--display); font-size: 15px;
+}
+.manager-workspace .account-facts {
+  display: grid; grid-template-columns: repeat(2, max-content); justify-content: start;
+  gap: 16px 56px; margin: 18px 0 0; padding: 0;
+}
+.manager-workspace .account-facts div { display: grid; gap: 5px; min-width: 0; }
+.manager-workspace .account-facts dt { color: var(--muted); font-size: 11px; }
+.manager-workspace .account-facts dd { margin: 0; font-size: 13px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.manager-workspace .account-actions { margin-top: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.manager-workspace .account-actions .button { min-height: 40px; }
+.manager-workspace .account > .inline-error { margin-top: 14px; }
+
+/* Sync progress: four named stages, the current one carries the weight. */
+.manager-workspace .sync-progress { margin-top: 20px; }
+.manager-workspace .sync-stages { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; }
+.manager-workspace .sync-stages li {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; border-radius: 4px;
+  border: 1px solid var(--line); color: var(--muted); font-size: 11px;
+}
+.manager-workspace .sync-stages li.current { border-color: var(--accent); background: var(--soft); color: var(--ink); font-weight: 600; }
+.manager-workspace .sync-stages li.done { color: var(--ink); }
+.manager-workspace .sync-stages b { font-family: var(--display); font-size: 10px; letter-spacing: .08em; }
+.manager-workspace .sync-counts { margin: 0; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+
+/* Destructive actions are separated, width-bound and confirmed. */
+.manager-workspace .danger-block {
+  max-width: 620px; margin-top: 24px; padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--error) 30%, var(--line)); border-radius: 8px;
+  background: color-mix(in srgb, var(--error) 5%, transparent);
+}
+.manager-workspace .danger-block h3 { margin: 0 0 7px; font-size: 13px; font-weight: 600; color: var(--error); }
+.manager-workspace .danger-block p { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.75; }
+.manager-workspace .danger-block .action-row { gap: 10px; }
+.manager-workspace .button.danger { border-color: color-mix(in srgb, var(--error) 45%, var(--line)); background: transparent; color: var(--error); }
+.manager-workspace .button.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--error) 12%, transparent); opacity: 1; }
+.manager-workspace .button.danger.confirming { background: var(--error); border-color: var(--error); color: var(--paper); }
+.manager-workspace .button.danger.confirming:hover:not(:disabled) { background: color-mix(in srgb, var(--error) 88%, var(--ink)); }
+
+/* Model directory list, shown only once a real answer arrived. */
+.manager-workspace .model-list { margin: 14px 0 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; gap: 6px; max-height: 190px; overflow-y: auto; }
+.manager-workspace .model-list li { padding: 5px 9px; border: 1px solid var(--line); border-radius: 4px; background: var(--ground); color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.manager-workspace .model-list li.chosen { border-color: var(--accent); background: var(--soft); color: var(--ink); font-weight: 600; }
+.manager-workspace .model-choice { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.manager-workspace .model-choice:hover { text-decoration: underline; text-underline-offset: 3px; }
+.manager-workspace .model-choice:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.manager-workspace .model-list li.chosen .model-choice { font-weight: 600; }
+
+/* Data boundary: local facts and remote facts side by side. */
+.manager-workspace .boundary-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px; }
+.manager-workspace .boundary-column h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 13px; font-weight: 600; }
+.manager-workspace .boundary-column h3 svg { width: 15px; height: 15px; color: var(--muted); }
+.manager-workspace .boundary-column ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.manager-workspace .boundary-column li { color: var(--muted); font-size: 12.5px; line-height: 1.75; }
+.manager-workspace .boundary-note { margin: 0; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.75; }
+
+/* Loading skeleton: same shape as the loaded page, no spinner. */
+.manager-workspace .settings-skeleton { display: grid; gap: 26px; max-width: 880px; }
+.manager-workspace .settings-skeleton span {
+  display: block; height: 14px; border-radius: 4px;
+  background: linear-gradient(90deg, var(--ground) 0%, var(--soft) 50%, var(--ground) 100%);
+  background-size: 220% 100%; animation: settings-shimmer 1.6s ease-in-out infinite;
+}
+.manager-workspace .settings-skeleton .skeleton-tabs { width: 48%; height: 42px; border-radius: 6px; }
+.manager-workspace .settings-skeleton .skeleton-title { width: 30%; height: 26px; }
+.manager-workspace .settings-skeleton .skeleton-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.manager-workspace .settings-skeleton .skeleton-cards span { height: 168px; border-radius: 9px; }
+.manager-workspace .settings-skeleton .skeleton-line { width: 62%; }
+@keyframes settings-shimmer { from { background-position: 120% 0; } to { background-position: -20% 0; } }
+
+.manager-workspace .settings-form { display: block; }
+.manager-workspace .settings-actions { margin-top: 26px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .manager-workspace .settings-skeleton span { animation: none; }
+  .manager-workspace .theme-card:hover { transform: none; }
+}
+
+@media (max-width: 900px) {
+  .manager-workspace .theme-choices, .manager-workspace .boundary-grid, .manager-workspace .settings-skeleton .skeleton-cards { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .manager-workspace .settings-tabs {
+    gap: 0; margin-bottom: 26px; padding-bottom: 1px;
+    overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none;
+  }
+  .manager-workspace .settings-tabs::-webkit-scrollbar { display: none; }
+  .manager-workspace .settings-tabs button { padding: 11px 12px 12px; white-space: nowrap; }
+  .manager-workspace .settings-panel { gap: 24px; }
+  .manager-workspace .settings-panel-head h2 { font-size: 21px; }
+  .manager-workspace .settings-panel-body { gap: 26px; }
+  .manager-workspace .mode-segments { width: 100%; }
+  .manager-workspace .mode-segment { padding-inline: 8px; gap: 6px; }
+  .manager-workspace .account-facts { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .manager-workspace .danger-block { max-width: none; }
+}

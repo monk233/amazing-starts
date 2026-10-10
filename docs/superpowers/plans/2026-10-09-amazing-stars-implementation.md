@@ -1,8 +1,10 @@
-# amazing-starts 实施计划
+# amazing-stars 实施计划
 
 日期：2026-10-09  
 状态：待执行；本轮仅编写计划。  
-设计依据：`../specs/2026-10-09-amazing-starts-design.md`。
+设计依据：`../specs/2026-10-09-amazing-stars-design.md`。
+
+进度更新（2026-10-10）：M0 视觉候选、M1 工程基础与 M2 GitHub 读取同步已实施，验证记录见 `docs/acceptance.md`；M3 及后续阶段尚未开始。计划中的产物路径与实际实现不一致之处，以仓库中的代码为准。
 
 ## 1. 执行原则
 
@@ -17,7 +19,7 @@
 
 M0 视觉与集成条件确认；M1 工程和数据基础；M2 GitHub 授权同步；M3 手动管理；M4 AI 接入与分类；M5 自动检测与恢复；M6 手册、检索和对比；M7 动态跟踪；M8 完整体验与打包验收。
 
-M0 的 OAuth 配置可等待人工提供，但 M2 的真实登录验收不能跳过。没有真实配置时，只能报告离线工程进度。
+M0 的连接配置可等待人工提供，但 M2 的真实账号验收不能跳过。没有真实凭证时，只能报告离线工程进度。
 
 M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已确认的视觉方案。每阶段实现都同步处理加载、空、错误与禁用状态，M8 不是集中补做全部界面的借口。
 
@@ -25,13 +27,13 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 
 ### 目标
 
-明确界面艺术方向、OAuth Client ID 和用于验收的 AI 服务，避免把前端视觉与授权问题拖到最后。
+明确界面艺术方向、GitHub 连接方式（2026-10-10 起为 Personal Access Token）和用于验收的 AI 服务，避免把前端视觉与授权问题拖到最后。
 
 ### 工作
 
 1. 展示两种明确不同的艺术方向，覆盖收藏主页面、仓库详情和设置，不能只生成孤立的首页。
 2. 视觉草案同时说明布局、字体、色彩、主题切换、暗色模式和动画强度；用户选定后形成主题 tokens 及组件规范。
-3. 给出本项目 OAuth App 的注册字段、Device Flow 开关及 Client ID 配置说明，由用户完成或另行授权操作。
+3. 给出 GitHub 连接的配置说明。2026-10-10 起使用 Personal Access Token，无需注册 OAuth App 或配置 Client ID。
 4. 确定用户提供的 AI Base URL、模型名和凭证输入方式；真实 Key 仅在插件设置中输入，不写入文档、源码或聊天记录。
 
 ### 计划产物
@@ -44,7 +46,7 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 ### 验收项
 
 - 确认主页面、详情和设置风格，而不是仅确认一张宣传图。
-- 说明缺少 Client ID 时哪些工作可继续、哪些真实流程不能验收。
+- 说明缺少真实凭证时哪些工作可继续、哪些真实流程不能验收。
 - 任何未经真实请求验证的 AI 服务明确标记未验证。
 
 ## M1：WXT 工程、消息协议和本地数据
@@ -54,7 +56,7 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 - `package.json`、lockfile、`tsconfig.json`、`wxt.config.ts`、`.gitignore`
 - `entrypoints/background.ts`
 - `entrypoints/github.content.ts`
-- `entrypoints/popup/`、`entrypoints/manager/`
+- `entrypoints/manager/`（工具栏弹窗属于后续阶段，见 M8）
 - `src/data/types.ts`、`src/data/database.ts`、`src/data/settings.ts`、`src/data/credentials.ts`
 - `src/messaging.ts`
 - `src/ui/tokens.css`、`src/ui/theme.ts`
@@ -82,15 +84,14 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 
 ### 计划文件
 
-- `src/github/auth.ts`、`src/github/client.ts`、`src/github/stars.ts`、`src/github/lists.ts`、`src/github/sync.ts`
-- `src/features/settings/github-settings.tsx`
-- `src/features/library/`
-- `tests/github/auth.test.ts`、`tests/github/sync.test.ts`
+- `src/github/client.ts`、`src/github/service.ts`、`src/github/sync.ts`、`src/github/types.ts`
+- `src/ui/GitHubSettings.tsx`、`src/ui/Library.tsx`、`src/library/library.ts`
+- `tests/github/auth.test.ts`、`tests/github/client.test.ts`、`tests/github/sync.test.ts`、`tests/github/helpers.ts`
 
 ### 工作
 
-1. 实现 Device Flow：授权码展示、打开验证页、轮询间隔、slow_down、取消和过期。
-2. 成功后重新识别 GitHub 用户；适配有无刷新凭证两种响应。
+1. 实现连接流程：填写 Personal Access Token、验证账号身份与 Stars／Lists／items 读取能力、保存凭证。原 Device Flow 条目（授权码展示、轮询间隔、slow_down、取消和过期）已作废。
+2. 成功后重新识别 GitHub 用户；不引入刷新机制，Token 过期或被撤销后由用户更换。
 3. 用 REST/GraphQL 读取 Stars、Lists 和列表归属，逐项完成分页。
 4. 完整同步原子提交本地快照；快速新增同步不能删掉未读取的数据。
 5. 首次显示真实收藏列表、过滤、详情和上次成功同步时间。
@@ -102,7 +103,7 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 - 授权拒绝或缺少 scope 时保留正确状态，不要求完整 repo 权限作为偷懒兜底。
 - 401、403、404、429、GraphQL 部分错误和分页中断均不造成误删。
 - 仓库改名仍关联原有标签、手册；取消收藏不自动删除本地笔记。
-- 真实登录验收需要项目 Client ID；未完成时明确报告集成阻塞。
+- 真实账号验收需要用户提供 Personal Access Token；未完成时明确报告集成阻塞。
 
 ## M3：手动管理与多维度分类
 
@@ -253,7 +254,7 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 - 主页面、分类、详情、手册、对比、动态、设置及所有必要空状态均可访问。
 - 没有临时占位按钮、虚构统计或仅在成功路径工作的动画。
 - 构建产物不含 Token、API Key、Client Secret、远程可执行代码和不必要主机权限。
-- 只报告实际执行的验证；构建通过不等于 OAuth/AI/真实 GitHub 写入已通过。
+- 只报告实际执行的验证；构建通过不等于 Token 验证、AI 调用或真实 GitHub 写入已通过。
 
 ## 3. 原始需求追踪
 
@@ -278,9 +279,9 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 
 - 纯逻辑测试：ID 校验、分类差异、手动保护、查询解析、去重、规则版本及主题逻辑。
 - 数据与调度测试：账号隔离、事务、分页、部分失败、租约与恢复。
-- 模拟网络测试：Device Flow 状态、403/429、GraphQL 错误和 AI 畸形返回；不能代替真实服务证明。
+- 模拟网络测试：Token 验证状态、403/429、GraphQL 错误和 AI 畸形返回；不能代替真实服务证明。
 - 浏览器测试：内容脚本、权限请求、主题、键盘、Markdown、安全消息及 Worker 生命周期。
-- 真实服务验收：用户授权下的 OAuth、测试 List 写入、指定 AI 服务调用；记录范围和可能费用。
+- 真实服务验收：用户授权下的 Access Token 读取、测试 List 写入、指定 AI 服务调用；记录范围和可能费用。
 
 真实数据验收前明确测试对象和最终保留状态，不以“测试”为由自动创建、删除或清理用户远端数据。
 

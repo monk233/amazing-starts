@@ -1,8 +1,10 @@
-# amazing-starts Chrome 扩展设计
+# amazing-stars Chrome 扩展设计
 
 日期：2026-10-09  
 状态：根据已确认的产品方案编写；应用代码尚未实现。  
 范围：Chrome 扩展、无自建后端、用户自行配置 AI 服务。
+
+更新记录（2026-10-10）：用户确认 GitHub 连接方式由 OAuth Device Flow 改为 Personal Access Token。本文件 §5.1 的 Device Flow 流程、§5.2 的 OAuth scope 申请流程与 §13 第 1 项的 OAuth Client ID 门槛均由该调整取代，原文保留作为设计历史。当前实现、权限声明与验收状态以 README、`docs/setup/github-oauth.md` 和 `docs/acceptance.md` 为准。
 
 ## 1. 已确认的决策
 
@@ -17,7 +19,7 @@
 9. 提供独特的视觉设计、多主题、亮色、暗色、跟随系统与适度动画。
 10. 不因为本次设计文档授权而注册 OAuth App、修改 GitHub 收藏、发送 AI 请求、提交、推送或发布扩展。
 
-项目名称保留 `amazing-starts`，产品所管理的 GitHub 功能称为 Stars。
+项目名称使用 `Amazing Stars`，产品所管理的 GitHub 功能称为 Star。两者同名但含义不同：前者是产品与仓库名，后者指 GitHub 的 Star 功能。
 
 ## 2. 交付边界
 
@@ -31,7 +33,7 @@
 
 | 模块 | 职责 |
 | --- | --- |
-| 工具栏弹窗 | 显示连接状态、当前仓库是否在收藏中、分类状态和管理页入口 |
+| 工具栏弹窗（后续阶段） | 显示连接状态、当前仓库是否在收藏中、分类状态和管理页入口 |
 | 独立管理页 | 收藏浏览、分类维度、仓库详情、手册、对比、动态和设置 |
 | 后台 Service Worker | GitHub 请求、AI 请求、认证状态、任务调度和业务写入 |
 | GitHub 内容脚本 | 识别 Star 操作并发送仓库线索，不读取 Token/API Key |
@@ -82,6 +84,8 @@
 
 ### 5.1 Device Flow
 
+> 历史设计（已被取代）：本节描述的 Device Flow 授权流程自 2026-10-10 起不再使用，实际实现改为 Personal Access Token，见文首更新记录与 `docs/setup/github-oauth.md`。以下内容保留作为设计历史。
+
 注册本项目的 OAuth App，启用 Device Flow。Client ID 是公开配置，不能使用 GitHub CLI 的 Client ID 或复用开发者自己的 CLI Token。
 
 流程：用户主动登录，获取 device code 和 user code，打开 GitHub 验证页面，按服务端 interval 轮询，成功后调用用户身份接口，以真实用户 ID 建立账号边界。
@@ -94,6 +98,8 @@
 
 ### 5.2 OAuth scope
 
+> 历史设计（部分被取代）：Personal Access Token 由用户自行选择权限范围，扩展不再走 OAuth 授权申请 scope 的流程。本节关于最小权限与不静默扩权的约束仍然有效，具体范围由用户在 GitHub 上为 Token 配置。
+
 本次会话已有真实接口证据表明 `createUserList` 要求 `user` scope。该 scope 不仅覆盖本产品需要的列表操作，授权界面必须解释权限范围。
 
 初始授权以 Lists 管理所需的 `user` 为候选最小 scope，实施时验证真实查询与写入能力。不能根据本机 CLI 已具有 `repo` 权限而把同样权限默认复制给插件。
@@ -104,7 +110,9 @@
 
 ### 5.3 Chrome 权限
 
-必需权限限于 `storage`、`alarms` 及实际使用的 GitHub host permissions。Github.com 内容脚本匹配范围仅限产品所需网站。
+当前已申请的权限限于 `storage` 与 `https://api.github.com/*` 主机范围。Github.com 内容脚本匹配范围仅限产品所需网站。
+
+`alarms` 属于 M5（新增 Star 检测与自动分类）和 M7（动态跟踪）引入后台定时唤醒时才增加的权限。M1/M2 的实现把同步进度保存在持久化任务中，由管理页打开时驱动分页，因此 manifest 目前不声明 `alarms`，也没有调度层。
 
 AI 自定义地址采用 optional host permissions，由用户保存配置时的明确手势请求所选 origin，不一次性授权所有网站。普通服务仅允许 HTTPS；用户明确配置本地服务时才允许 loopback HTTP，不泛化为任意明文 HTTP 地址。
 
@@ -194,7 +202,7 @@ GitHub 网站登录账号与插件账号可能不同。插件不能仅凭网站�
 
 网络超时后的 GitHub 写入先核对远端结果，再决定是否重试。AI 请求中断且结果未知时进入 needs_review，不自动反复付费调用；首版不承诺供应商端 exactly-once。
 
-`chrome.alarms` 只用于唤醒和补偿，不承诺精确定时或浏览器退出时继续运行。启动时检查并重建必要闹钟，调度按持久化 nextRunAt 恢复。
+（后续阶段）`chrome.alarms` 只用于唤醒和补偿，不承诺精确定时或浏览器退出时继续运行。启动时检查并重建必要闹钟，调度按持久化 nextRunAt 恢复。
 
 ## 9. 手册、检索、对比和动态
 
@@ -239,7 +247,7 @@ AI 分析为单独区域，说明适用场景和差异。事实与推断分开�
 - 对比页：事实表与 AI 分析分区。
 - 动态页：跟踪范围、更新列表、已读状态、上次成功同步时间。
 - 设置页：GitHub、AI、规则、外观、数据归属说明。
-- 弹窗：简洁的快捷入口，不在窄窗口复制完整后台界面。
+- 弹窗（后续阶段）：简洁的快捷入口，不在窄窗口复制完整后台界面。
 
 ### 10.2 艺术方向与主题
 
@@ -253,7 +261,7 @@ AI 分析为单独区域，说明适用场景和差异。事实与推断分开�
 
 ### 10.3 必须设计的状态
 
-未登录、缺少 OAuth 配置、无收藏、未配置 AI、同步中、部分失败、权限不足、限流、离线、无搜索结果、AI 待确认、手动保护、任务中断、主题切换、分类合并冲突。
+未登录、缺少 GitHub 凭证、无收藏、未配置 AI、同步中、部分失败、权限不足、限流、离线、无搜索结果、AI 待确认、手动保护、任务中断、主题切换、分类合并冲突。
 
 不得使用虚构统计数字填满界面，不以成功提示掩盖 pending 状态。
 
@@ -263,7 +271,7 @@ AI 分析为单独区域，说明适用场景和差异。事实与推断分开�
 
 - `entrypoints/background.ts`：后台入口。
 - `entrypoints/github.content.ts`：GitHub 页面适配。
-- `entrypoints/popup/`：工具栏弹窗。
+- `entrypoints/popup/`：工具栏弹窗（后续阶段）。
 - `entrypoints/manager/`：独立管理页。
 - `src/github/`：认证、查询、同步与 Lists 写入。
 - `src/ai/`：兼容接口、提示词、输出契约。
@@ -283,7 +291,7 @@ AI 分析为单独区域，说明适用场景和差异。事实与推断分开�
 
 ## 13. 已知边界与实施门槛
 
-1. OAuth Client ID 尚未提供；真实登录验收前必须完成项目 OAuth App 配置。
+1. GitHub 连接改用 Personal Access Token 后不再需要 OAuth Client ID，原 OAuth App 配置门槛作废；Token 类型、权限与组织策略下的真实读取范围仍需在用户提供的 Token 下验收。
 2. AI 兼容性以实际服务测试结果为准，不能仅凭接口名宣布全部兼容。
 3. Lists 合并是可恢复的组合操作，不具有跨设备原子性。
 4. 外部 AI 请求可能收费，超时无法证明供应商未完成推理。

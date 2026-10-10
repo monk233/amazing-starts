@@ -1,4 +1,4 @@
-# amazing-starts 产品边界
+# Amazing Stars 产品边界
 
 <!-- impeccable:product-schema 1 -->
 
