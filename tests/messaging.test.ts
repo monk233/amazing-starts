@@ -77,19 +77,21 @@ describe('收藏管理页消息', () => {
   });
 });
 
-describe('GitHub privileged messages', () => {
-  it('accepts GitHub reads and validation from the settings hash route', () => {
+describe('Git privileged messages', () => {
+  it('accepts Git reads and validation from the settings hash route', () => {
     const extensionId = 'epmelnmjmhfabpcllnpjmmhflbbnnkfm';
     const sender = { id: extensionId, url: `chrome-extension://${extensionId}/manager.html#settings` };
-    for (const message of [{ type: 'GITHUB_READ' }, { type: 'GITHUB_CONNECT', token: 'test_personal_access_token_123', remember: false }]) {
+    const github = { type: 'GIT_CONNECT', provider: 'github', token: 'test_personal_access_token_123', remember: false };
+    const gitee = { type: 'GIT_CONNECT', provider: 'gitee', token: 'test_gitee_private_token_456', remember: true };
+    for (const message of [{ type: 'GIT_READ' }, github, gitee]) {
       expect(authorizeMessage(message, sender, extensionId)).toEqual(message);
       expect(authorizeMessage(message, { ...sender, id: 'another-extension' }, extensionId)).toBeNull();
     }
   });
   it('allows bounded commands only from the manager', () => {
-    for (const message of [{ type: 'GITHUB_READ' },
-      { type: 'GITHUB_CONNECT', token: 'test_personal_access_token_123', remember: false },
-      ...['GITHUB_SYNC', 'GITHUB_STEP', 'GITHUB_CANCEL_SYNC', 'GITHUB_DISCONNECT'].map(type => ({ type, accountId: 'U_a' }))]) {
+    for (const message of [{ type: 'GIT_READ' },
+      { type: 'GIT_CONNECT', provider: 'github', token: 'test_personal_access_token_123', remember: false },
+      ...['GIT_SYNC', 'GIT_STEP', 'GIT_CANCEL_SYNC', 'GIT_DISCONNECT'].map(type => ({ type, accountId: 'U_a' }))]) {
       expect(authorizeMessage(message, ui, id)).toEqual(message);
       expect(authorizeMessage(message, content, id)).toBeNull();
       expect(authorizeMessage(message, { ...ui, url: `chrome-extension://${id}/popup.html` }, id)).toBeNull();
@@ -97,13 +99,32 @@ describe('GitHub privileged messages', () => {
       expect(authorizeMessage({ ...message, url: 'https://evil.test' }, ui, id)).toBeNull();
     }
   });
-  it('rejects credential reads, obsolete OAuth commands and arbitrary fields', () => {
-    for (const message of [{ type: 'GITHUB_TOKEN' }, { type: 'GITHUB_LOGIN', clientId: 'project-client-id', remember: false },
-      { type: 'GITHUB_POLL' }, { type: 'GITHUB_CANCEL_LOGIN' },
-      { type: 'GITHUB_CONNECT', token: 'test_personal_access_token_123', remember: false, scope: 'repo' },
-      { type: 'GITHUB_SYNC', accountId: '../../other-account' }, { type: 'GITHUB_STEP' }]) expect(authorizeMessage(message, ui, id)).toBeNull();
+  it('allows bounded category and rule commands from the manager only', () => {
+    const save = { type: 'GIT_CATEGORY_SAVE', accountId: 'U_a', id: null, name: '工具', description: '说明' };
+    const move = { type: 'GIT_CATEGORY_MOVE', accountId: 'U_a', repositoryId: 'R_1', categoryId: null };
+    const remove = { type: 'GIT_CATEGORY_DELETE', accountId: 'U_a', categoryId: 'local:abc' };
+    for (const message of [save, move, remove, { type: 'GIT_RULE_SAVE', accountId: 'U_a', mode: 'stars' }]) {
+      expect(authorizeMessage(message, ui, id)).toEqual(message);
+      expect(authorizeMessage(message, content, id)).toBeNull();
+      expect(authorizeMessage({ ...message, url: 'https://evil.test' }, ui, id)).toBeNull();
+    }
+    expect(authorizeMessage({ ...save, name: 'x'.repeat(81) }, ui, id)).toBeNull();
+    expect(authorizeMessage({ ...save, description: 'x'.repeat(501) }, ui, id)).toBeNull();
+    expect(authorizeMessage({ ...save, name: 'bad\u0000name' }, ui, id)).toBeNull();
+    expect(authorizeMessage({ ...move, categoryId: '../../escape' }, ui, id)).toBeNull();
+    expect(authorizeMessage({ type: 'GIT_RULE_SAVE', accountId: 'U_a', mode: 'everything' }, ui, id)).toBeNull();
   });
-  it.each(['', 'short', 'a'.repeat(1025), 'test_token_with\r\nheader', 'test_token_with spaces', 7, null])('rejects invalid tokens at the message boundary', token => {
-    expect(authorizeMessage({ type: 'GITHUB_CONNECT', token, remember: false }, ui, id)).toBeNull();
+  it('rejects credential reads, obsolete OAuth commands and arbitrary fields', () => {
+    for (const message of [{ type: 'GIT_TOKEN' }, { type: 'GIT_LOGIN', clientId: 'project-client-id', remember: false },
+      { type: 'GIT_POLL' }, { type: 'GIT_CANCEL_LOGIN' },
+      { type: 'GIT_CONNECT', provider: 'github', token: 'test_personal_access_token_123', remember: false, scope: 'repo' },
+      { type: 'GIT_CONNECT', provider: 'bitbucket', token: 'test_personal_access_token_123', remember: false },
+      { type: 'GIT_SYNC', accountId: '../../other-account' }, { type: 'GIT_STEP' }]) expect(authorizeMessage(message, ui, id)).toBeNull();
+  });
+  it.each(['', 'short', 'a'.repeat(1025), 'test_token_with\r\nheader', 'test_token_with spaces', 7, null])('rejects invalid GitHub tokens at the message boundary', token => {
+    expect(authorizeMessage({ type: 'GIT_CONNECT', provider: 'github', token, remember: false }, ui, id)).toBeNull();
+  });
+  it.each(['', 'short gitee', 'a'.repeat(1025), 'gitee token with spaces', 7, null])('rejects invalid Gitee tokens at the message boundary', token => {
+    expect(authorizeMessage({ type: 'GIT_CONNECT', provider: 'gitee', token, remember: false }, ui, id)).toBeNull();
   });
 });

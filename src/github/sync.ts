@@ -1,6 +1,7 @@
 import type { GitHubClient } from './client';
 import type { SyncMode } from '../data/types';
-import { GitError, flag, nullableText, record, text, type SyncJob } from '../git/types';
+import { emptyDraft, GitError, flag, nullableText, record, text, type SyncJob } from '../git/types';
+export { emptyDraft };
 
 export const SYNC_ID = 'github-sync';
 const pageInfo = 'totalCount pageInfo { hasNextPage endCursor }';
@@ -10,7 +11,6 @@ export const STARS_QUERY = `query Stars($cursor: String) { viewer { id starredRe
 } } }`;
 export const LISTS_QUERY = `query Lists($cursor: String) { viewer { id lists(first: 100, after: $cursor) { ${pageInfo} nodes { id name description isPrivate } } } }`;
 export const ITEMS_QUERY = `query ListItems($id: ID!, $cursor: String) { viewer { id } node(id: $id) { ... on UserList { id user { id } items(first: 100, after: $cursor) { ${pageInfo} nodes { __typename ... on Repository { id } } } } } }`;
-export const emptyDraft = () => ({ repositories: [], lists: [], memberships: [] });
 export function newSync(accountId: string, now: number, mode: SyncMode = 'stars+lists'): SyncJob {
   return { accountId, id: SYNC_ID, type: 'sync', targetId: accountId, state: 'running', deduplicationKey: SYNC_ID,
     revision: 1, attempts: 0, nextRunAt: now, leaseUntil: null, phase: 'stars', cursor: null, cursors: [], total: null,

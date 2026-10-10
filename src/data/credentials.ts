@@ -1,6 +1,6 @@
 import type { StorageArea } from './storage';
 
-type Kind = 'github' | 'ai';
+type Kind = 'github' | 'gitee' | 'ai';
 
 export class CredentialVault {
   private tail: Promise<unknown> = Promise.resolve();

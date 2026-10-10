@@ -15,6 +15,8 @@ const shapes: Record<string, ReactNode> = {
   refresh: <><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 6.1A8 8 0 0 1 20 12M4 12a8 8 0 0 0 13.9 5.9"/></>,
   external: <><path d="M14 3h7v7m0-7L10 14M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></>,
   info: <><circle cx="12" cy="12" r="9"/><path d="M12 11.4v5.1M12 7.9h.01"/></>,
+  plus: <path d="M12 5v14M5 12h14"/>,
+  more: <><circle cx="5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.4" fill="currentColor" stroke="none"/></>,
 };
 export function WorkspaceIcon({ name }: { name: keyof typeof shapes }) {
   return <svg className="workspace-icon" viewBox="0 0 24 24" aria-hidden="true">{shapes[name]}</svg>;

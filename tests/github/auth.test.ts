@@ -9,6 +9,8 @@ describe('GitHub Personal Access Token', () => {
     const r = rig(); const state = await r.connect();
     expect(state.accounts[0]?.connected).toBe(true);
     expect(state.accounts[0]?.account.accountId).toBe('U_a');
+    expect(state.accounts[0]?.provider).toBe('github');
+    expect(state.accounts[0]?.syncMode).toBe('stars+lists');
     expect(JSON.stringify(state)).not.toContain(ACCESS_TOKEN);
     expect(state).not.toHaveProperty('pending'); expect(state).not.toHaveProperty('clientId');
     expect(r.local.items).toEqual({});
@@ -19,27 +21,27 @@ describe('GitHub Personal Access Token', () => {
   it('accepts an account with no visible Stars or Lists', async () => {
     const r = rig(); r.add(user());
     r.add({ data: { viewer: { id: 'U_a', starredRepositories: { totalCount: 0 }, lists: { totalCount: 0, nodes: [] } } } });
-    expect((await r.service.handle({ type: 'GITHUB_CONNECT', token: ACCESS_TOKEN, remember: false })).accounts[0]?.connected).toBe(true);
+    expect((await r.service.handle({ type: 'GIT_CONNECT', provider: 'github', token: ACCESS_TOKEN, remember: false })).accounts[0]?.connected).toBe(true);
   });
   it('keeps an existing credential and snapshot when replacement validation fails', async () => {
     const r = rig(); await r.connect('U_a', true);
     const before = structuredClone(r.local.items);
     r.add(user()); r.add({ data: { viewer: {} }, errors: [{ message: 'requires scope: secret-server-text' }] });
-    await expect(r.service.handle({ type: 'GITHUB_CONNECT', token: REPLACEMENT, remember: false })).rejects.toMatchObject({ code: 'scope' });
+    await expect(r.service.handle({ type: 'GIT_CONNECT', provider: 'github', token: REPLACEMENT, remember: false })).rejects.toMatchObject({ code: 'scope' });
     expect(r.local.items).toEqual(before);
-    expect(JSON.stringify(await r.service.handle({ type: 'GITHUB_READ' }))).not.toContain(REPLACEMENT);
+    expect(JSON.stringify(await r.service.handle({ type: 'GIT_READ' }))).not.toContain(REPLACEMENT);
   });
   it.each([401, 403, 404, 429, 500])('does not save a credential when identity returns HTTP %s', async status => {
     const r = rig(); r.add({ message: ACCESS_TOKEN }, status); r.add(probe());
-    const result = r.service.handle({ type: 'GITHUB_CONNECT', token: ACCESS_TOKEN, remember: true });
+    const result = r.service.handle({ type: 'GIT_CONNECT', provider: 'github', token: ACCESS_TOKEN, remember: true });
     await expect(result).rejects.toThrow();
-    await result.catch(error => expect(error.message).not.toContain(ACCESS_TOKEN));
+    await result.catch((error: Error) => expect(error.message).not.toContain(ACCESS_TOKEN));
     expect(r.local.items).toEqual({}); expect(r.session.items).toEqual({});
-    expect((await r.service.handle({ type: 'GITHUB_READ' })).accounts).toEqual([]);
+    expect((await r.service.handle({ type: 'GIT_READ' })).accounts).toEqual([]);
   });
   it('requires the same account in REST and GraphQL', async () => {
     const r = rig(); r.add(user('U_a')); r.add(probe('U_b'));
-    await expect(r.service.handle({ type: 'GITHUB_CONNECT', token: ACCESS_TOKEN, remember: false })).rejects.toMatchObject({ code: 'account' });
+    await expect(r.service.handle({ type: 'GIT_CONNECT', provider: 'github', token: ACCESS_TOKEN, remember: false })).rejects.toMatchObject({ code: 'account' });
     expect(r.session.items).toEqual({});
   });
   it.each(['missing', 'null-list', 'missing-items', 'bad-count'])('rejects incomplete access probes: %s', async mode => {
@@ -49,7 +51,7 @@ describe('GitHub Personal Access Token', () => {
     if (mode === 'missing-items') delete data.data.viewer.lists.nodes[0].items;
     if (mode === 'bad-count') data.data.viewer.starredRepositories.totalCount = -1;
     r.add(data);
-    await expect(r.service.handle({ type: 'GITHUB_CONNECT', token: ACCESS_TOKEN, remember: false })).rejects.toThrow();
+    await expect(r.service.handle({ type: 'GIT_CONNECT', provider: 'github', token: ACCESS_TOKEN, remember: false })).rejects.toThrow();
     expect(r.local.items).toEqual({}); expect(r.session.items).toEqual({});
   });
   it('replaces durable credentials with session-only storage when unchecked', async () => {
@@ -60,7 +62,7 @@ describe('GitHub Personal Access Token', () => {
   });
   it('isolates credentials and removes only the selected account while retaining local accounts', async () => {
     const r = rig(); await r.connect('U_a', true); await r.connect('U_b', false, REPLACEMENT);
-    const state = await r.service.handle({ type: 'GITHUB_DISCONNECT', accountId: 'U_a' });
+    const state = await r.service.handle({ type: 'GIT_DISCONNECT', accountId: 'U_a' });
     expect(state.accounts.map(item => item.connected)).toEqual([false, true]);
     expect(state.accounts).toHaveLength(2);
     expect(r.local.items['credential:U_a:github']).toBeUndefined();
@@ -74,18 +76,18 @@ describe('GitHub Personal Access Token', () => {
   });
   it('clears an invalidated saved token without deleting the account', async () => {
     const r = rig(); await r.connect(); r.add({ message: 'Bad credentials' }, 401);
-    await expect(r.service.handle({ type: 'GITHUB_SYNC', accountId: 'U_a' })).rejects.toMatchObject({ code: 'unauthorized' });
-    const state = await r.service.handle({ type: 'GITHUB_READ' });
+    await expect(r.service.handle({ type: 'GIT_SYNC', accountId: 'U_a' })).rejects.toMatchObject({ code: 'unauthorized' });
+    const state = await r.service.handle({ type: 'GIT_READ' });
     expect(state.accounts[0]?.connected).toBe(false); expect(state.accounts).toHaveLength(1);
   });
   it('expires legacy OAuth credentials without requesting or exposing a refresh token', async () => {
     const r = rig(); await r.connect();
     const vault = new CredentialVault(r.local, r.session);
     await vault.save('U_a', 'github', JSON.stringify({ accessToken: ACCESS_TOKEN, remember: false, expiresAt: 1, clientId: 'legacy-client', refreshToken: 'legacy-refresh' }));
-    const state = await r.restart().handle({ type: 'GITHUB_READ' });
+    const state = await r.restart().handle({ type: 'GIT_READ' });
     expect(state.accounts[0]?.connected).toBe(false); expect(JSON.stringify(state)).not.toContain('legacy-refresh');
     const count = r.fetcher.mock.calls.length;
-    await expect(r.service.handle({ type: 'GITHUB_SYNC', accountId: 'U_a' })).rejects.toThrow('过期'); expect(r.fetcher).toHaveBeenCalledTimes(count);
+    await expect(r.service.handle({ type: 'GIT_SYNC', accountId: 'U_a' })).rejects.toThrow('过期'); expect(r.fetcher).toHaveBeenCalledTimes(count);
   });
   it('removes obsolete OAuth configuration after a successful token connection', async () => {
     const r = rig(); await r.local.set({ 'github-client-id': 'legacy-client' }); await r.session.set({ 'github-device-flow': { deviceCode: 'legacy-secret' } });

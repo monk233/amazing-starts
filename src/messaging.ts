@@ -1,4 +1,4 @@
-import { githubMessage, type GitHubMessage, type GitHubState } from './github/types';
+import { gitMessage, type GitMessage, type GitState } from './git/types';
 import type { Library } from './library/library';
 import { isAiInput, type AiInput, type AiState } from './ai/config';
 import { isAppearance } from './data/settings';
@@ -6,7 +6,7 @@ import type { Appearance, Settings } from './data/types';
 
 export interface Sender { id?: string; url?: string; tab?: unknown }
 export type ContentMessage = { type: 'CONTENT_READY'; repository: string | null };
-export type UiMessage = GitHubMessage | { type: 'LIBRARY_READ'; accountId: string | null } | { type: 'GET_STATUS' } | { type: 'OPEN_MANAGER' } |
+export type UiMessage = GitMessage | { type: 'LIBRARY_READ'; accountId: string | null } | { type: 'GET_STATUS' } | { type: 'OPEN_MANAGER' } |
   { type: 'SET_APPEARANCE'; appearance: Appearance } | { type: 'AI_READ' } |
   { type: 'AI_SAVE'; config: AiInput } | { type: 'AI_MODELS' | 'AI_TEST'; baseUrl: string };
 export type Message = ContentMessage | UiMessage;
@@ -14,7 +14,7 @@ export interface Status {
   phase: 'github'; github: 'access_token'; ai: 'configuration';
   settings: Settings; database: 'ready';
 }
-export type Reply = { ok: true; value: GitHubState | Library | Status | Settings | AiState | { models: string[] } | { modelCount: number } | { acknowledged: true } } |
+export type Reply = { ok: true; value: GitState | Library | Status | Settings | AiState | { models: string[] } | { modelCount: number } | { acknowledged: true } } |
   { ok: false; error: string };
 
 const UI_PATHS = new Set(['/manager.html', '/popup.html']);
@@ -40,8 +40,8 @@ export function authorizeMessage(input: unknown, sender: Sender, extensionId: st
   const trustedUi = url.protocol === 'chrome-extension:' && url.hostname === extensionId && UI_PATHS.has(url.pathname);
   if (trustedUi) {
     if (url.pathname === '/manager.html') {
-      const github = githubMessage(input);
-      if (github) return github;
+      const git = gitMessage(input);
+      if (git) return git;
       if (input.type === 'LIBRARY_READ' && Object.keys(input).length === 2 && (input.accountId === null || (typeof input.accountId === 'string' && input.accountId.trim().length > 0 && input.accountId.length <= 256))) {
         return { type: 'LIBRARY_READ', accountId: input.accountId };
       }

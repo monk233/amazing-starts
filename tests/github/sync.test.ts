@@ -50,7 +50,7 @@ describe('Complete, resumable GitHub snapshots', () => {
     expect(state.accounts[0]?.account.lastSyncedAt).toBeUndefined();
     expect(await check(r, db => db.list('repositories', 'U_a'))).toEqual([oldRepo]);
     if (status === 401) expect(state.accounts[0]?.connected).toBe(false);
-    if (status === 429) await expect(r.service.handle({ type: 'GITHUB_SYNC', accountId: 'U_a' })).rejects.toThrow('限流');
+    if (status === 429) await expect(r.service.handle({ type: 'GIT_SYNC', accountId: 'U_a' })).rejects.toThrow('限流');
   });
   it('does not commit partial GraphQL results', async () => {
     const r = await seeded(); await r.start(); r.add(stars([])); await r.step();
@@ -69,7 +69,7 @@ describe('Complete, resumable GitHub snapshots', () => {
   });
   it('cancels a staged snapshot without changing current records', async () => {
     const r = await seeded(); await r.start(); r.add(stars([])); await r.step();
-    await r.service.handle({ type: 'GITHUB_CANCEL_SYNC', accountId: 'U_a' }); const before = r.fetcher.mock.calls.length;
+    await r.service.handle({ type: 'GIT_CANCEL_SYNC', accountId: 'U_a' }); const before = r.fetcher.mock.calls.length;
     await r.step(); expect(r.fetcher.mock.calls).toHaveLength(before);
     expect(await check(r, db => db.list('repositories', 'U_a'))).toEqual([oldRepo]);
   });
@@ -79,11 +79,41 @@ describe('Complete, resumable GitHub snapshots', () => {
     expect(await check(r, db => db.list('repositoryTags', 'U_a'))).toHaveLength(1);
     expect((await check(r, db => db.list('handbooks', 'U_a')))[0]?.markdown).toBe('keep my notes');
   });
+  it('reads no Lists and touches no categories under the stars-only rule', async () => {
+    const r = await seeded(); await r.service.handle({ type: 'GIT_RULE_SAVE', accountId: 'U_a', mode: 'stars' });
+    const db0 = await r.database();
+    await db0.put('lists', 'U_a', { accountId: 'U_a', id: 'local:kept', name: '本地分类', description: null, isPrivate: false, syncedAt: '', source: 'manual' });
+    await db0.put('memberships', 'U_a', { accountId: 'U_a', id: 'local:kept:R_1', listId: 'local:kept', repositoryId: 'R_1', source: 'manual' });
+    db0.close();
+    await r.start(); r.add(stars([star(1)], 1)); await r.step(); const state = await r.step();
+    expect(state.accounts[0]?.sync?.state).toBe('succeeded');
+    expect(state.accounts[0]?.syncMode).toBe('stars');
+    expect(await check(r, db => db.list('lists', 'U_a'))).toHaveLength(1);
+    expect(await check(r, db => db.list('memberships', 'U_a'))).toHaveLength(1);
+    const queries = r.fetcher.mock.calls.filter(([url]) => String(url).endsWith('/graphql')).map(([, init]) => JSON.parse(String(init?.body)).query);
+    expect(queries.some((query: string) => query.includes('query Lists'))).toBe(false);
+  });
+  it('keeps a locally edited category while refreshing the ones still following the remote', async () => {
+    const r = await seeded();
+    const db = await r.database();
+    await db.put('lists', 'U_a', { accountId: 'U_a', id: 'L_0', name: '我改的名字', description: '我的说明', isPrivate: false, syncedAt: '', source: 'remote', tracked: false });
+    await db.put('lists', 'U_a', { accountId: 'U_a', id: 'L_1', name: 'List 1', description: null, isPrivate: false, syncedAt: '', source: 'remote', tracked: true });
+    await db.put('memberships', 'U_a', { accountId: 'U_a', id: 'L_0:R_1', listId: 'L_0', repositoryId: 'R_1', source: 'remote' });
+    db.close();
+    await r.start(); r.add(stars([star(1)], 1)); await r.step();
+    r.add(lists([list(0), list(1)], 2)); await r.step();
+    r.add(items('L_0', [])); await r.step();
+    r.add(items('L_1', [])); await r.step(); await r.step();
+    const listsAfter = await check(r, db => db.list('lists', 'U_a'));
+    expect(listsAfter.find(item => item.id === 'L_0')).toMatchObject({ name: '我改的名字', description: '我的说明', tracked: false });
+    expect(listsAfter.find(item => item.id === 'L_1')).toMatchObject({ name: 'List 1', tracked: true });
+    expect(await check(r, db => db.list('memberships', 'U_a'))).toHaveLength(1);
+  });
   it('rolls back all tables and the success timestamp when a snapshot write fails', async () => {
     const r = await seeded(); const db = await r.database();
-    const job = newSync('U_a', Date.now()); const account = (await db.get('accounts', 'U_a', 'U_a'))!;
+    const job = newSync('U_a', Date.now(), 'stars+lists'); const account = (await db.get('accounts', 'U_a', 'U_a'))!;
     const invalid = { ...list(1), accountId: 'U_a', syncedAt: '', uncloneable: () => 1 };
-    await expect(db.commitGitHubSnapshot({ ...account, lastSyncedAt: 'new' }, { repositories: [], lists: [invalid], memberships: [] }, job)).rejects.toThrow();
+    await expect(db.commitSyncSnapshot({ ...account, lastSyncedAt: 'new' }, job, { repositories: [], lists: [invalid], memberships: [] }, 'stars+lists')).rejects.toThrow();
     expect(await db.list('repositories', 'U_a')).toEqual([oldRepo]); expect(await db.list('lists', 'U_a')).toEqual([]);
     expect((await db.get('accounts', 'U_a', 'U_a'))?.lastSyncedAt).toBeUndefined(); expect(await db.get('jobs', 'U_a', job.id)).toBeUndefined();
     db.close();

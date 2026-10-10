@@ -16,7 +16,7 @@ export async function readLibrary(db: LocalDatabase, requestedAccount: string | 
     db.list('repositories', accountId), db.list('lists', accountId), db.list('memberships', accountId),
     db.list('dimensions', accountId), db.list('tags', accountId), db.list('repositoryTags', accountId),
   ]);
-  return { ...empty, repositories, lists, memberships, dimensions: dimensions.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)), tags, repositoryTags };
+  return { ...empty, repositories, lists: lists.sort((a, b) => a.name.localeCompare(b.name)), memberships, dimensions: dimensions.sort((a, b) => a.order - b.order || a.name.localeCompare(b.name)), tags, repositoryTags };
 }
 export interface Filters {
   query: string; listId: string; language: string; visibility: string; archived: string;

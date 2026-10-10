@@ -1,5 +1,5 @@
-import { GitHubService } from '../src/github/service';
-import { GitHubError, githubMessage } from '../src/github/types';
+import { GitService } from '../src/git/service';
+import { GitError, gitMessage } from '../src/git/types';
 import { readLibrary } from '../src/library/library';
 import { AiService } from '../src/ai/service';
 import { AiError } from '../src/ai/config';
@@ -13,7 +13,7 @@ import { authorizeMessage, type Reply, type Status } from '../src/messaging';
 export default defineBackground(() => {
   const settings = new SettingsStore(browser.storage.local);
   const ai = new AiService(browser.storage.local, browser.storage.session, origin => browser.permissions.contains({ origins: [origin] }));
-  const github = new GitHubService(browser.storage.local, browser.storage.session);
+  const git = new GitService(browser.storage.local, browser.storage.session);
   let ready: Promise<void> | undefined;
   function initialize(): Promise<void> {
     ready ??= (async () => {
@@ -37,8 +37,8 @@ export default defineBackground(() => {
     }
     void (async (): Promise<Reply> => {
       await initialize();
-      const githubRequest = githubMessage(message);
-      if (githubRequest) return { ok: true, value: await github.handle(githubRequest) };
+      const gitRequest = gitMessage(message);
+      if (gitRequest) return { ok: true, value: await git.handle(gitRequest) };
       if (message.type === 'CONTENT_READY') return { ok: true, value: { acknowledged: true } };
       if (message.type === 'OPEN_MANAGER') {
         await browser.tabs.create({ url: browser.runtime.getURL('/manager.html') });
@@ -62,7 +62,7 @@ export default defineBackground(() => {
       };
       return { ok: true, value: status };
     })().then(sendResponse).catch((error: unknown) => {
-      if (error instanceof AiError || error instanceof GitHubError) { sendResponse({ ok: false, error: error.message } satisfies Reply); return; }
+      if (error instanceof GitError || error instanceof AiError) { sendResponse({ ok: false, error: error.message } satisfies Reply); return; }
       sendResponse({ ok: false, error: '本地初始化或操作失败。请重新打开扩展；原数据未被清除。' } satisfies Reply);
     });
     return true;

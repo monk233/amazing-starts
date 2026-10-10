@@ -1,4 +1,4 @@
-import { useGitHub } from '../../src/ui/GitHubSettings';
+import { useGit } from '../../src/ui/use-git';
 import { Library } from '../../src/ui/Library';
 import { SettingsTabs } from '../../src/ui/SettingsTabs';
 import React, { useEffect, useState } from 'react';
@@ -12,7 +12,7 @@ import '../../src/ui/settings.css';
 const routeFromHash = () => location.hash.startsWith('#settings') ? 'settings' : 'library';
 
 function App() {
-  const github = useGitHub();
+  const git = useGit();
   const { status, error, saving, load, saveAppearance } = useFoundation();
   const [route, setRoute] = useState(routeFromHash);
   useEffect(() => {
@@ -22,11 +22,11 @@ function App() {
   }, []);
   const appearance = status?.settings.appearance;
   const change = (patch: Partial<Appearance>) => { if (appearance) void saveAppearance({ ...appearance, ...patch }); };
-  return <Library github={github} route={route} notice={<>
+  return <Library git={git} route={route} notice={<>
     {error && <div role="alert" className="error">{error} <button className="button secondary" onClick={() => void load()}>重试</button></div>}
   </>}>
     {status ? <div className="settings-page">
-      <SettingsTabs appearance={appearance} saving={saving} onChange={change} github={github} />
+      <SettingsTabs appearance={appearance} saving={saving} onChange={change} git={git} />
     </div> : !error ? <div className="settings-skeleton" role="status" aria-label="正在打开本地工作区">
       <span className="skeleton-tabs" /><span className="skeleton-title" /><span className="skeleton-line" />
       <span className="skeleton-cards"><span /><span /></span>

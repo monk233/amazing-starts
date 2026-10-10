@@ -40,6 +40,22 @@ export interface GitAccountState {
 }
 export interface GitState { kind: 'git'; accounts: GitAccountState[] }
 
+export const emptyDraft = (): Snapshot => ({ repositories: [], lists: [], memberships: [] });
+
+/** 每个远端平台实现该接口；服务只依赖接口，不直接触碰协议细节。 */
+export interface GitAdapter {
+  readonly id: GitProvider;
+  /** 该平台的同步任务 ID；同一账号最多一个未完成的任务。 */
+  readonly jobId: string;
+  /** 连接时使用：校验身份并探测读取能力。 */
+  verify(token: string): Promise<Account>;
+  /** 同步开始时使用：只校验身份，不额外读取数据。 */
+  identity(token: string): Promise<Account>;
+  newJob(account: Account, now: number): SyncJob;
+  /** 读取一页；调用方在每次成功后持久化任务进度。 */
+  fetchPage(token: string, job: SyncJob): Promise<void>;
+}
+
 export function syncStatus(job: SyncJob): SyncStatus {
   return {
     state: job.state, phase: job.phase, mode: job.mode, error: job.error,

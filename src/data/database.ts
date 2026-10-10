@@ -1,7 +1,7 @@
 import { planCategories } from '../library/categories';
 import type { Account, Job, List, Membership, Snapshot, SyncMode, Table, Tables } from './types';
 
-export const DATABASE_NAME = 'amazing-starts';
+export const DATABASE_NAME = 'amazing-stars';
 export const DATABASE_VERSION = 1;
 export const TABLES: Table[] = [
   'accounts', 'repositories', 'lists', 'memberships', 'dimensions', 'tags',

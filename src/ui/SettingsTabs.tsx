@@ -1,24 +1,25 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import type { Appearance } from '../data/types';
 import { AppearanceSettings } from './AppearanceSettings';
-import { GitHubSettings, type GitHubController } from './GitHubSettings';
+import { GitSettings } from './GitSettings';
 import { AiSettings } from './AiSettings';
 import { DataBoundary } from './DataBoundary';
+import type { GitController } from './use-git';
 
-type TabId = 'appearance' | 'github' | 'ai' | 'boundary';
+type TabId = 'appearance' | 'git' | 'ai' | 'boundary';
 const TABS: { id: TabId; number: string; label: string }[] = [
   { id: 'appearance', number: '01', label: '外观' },
-  { id: 'github', number: '02', label: 'GitHub' },
+  { id: 'git', number: '02', label: 'Git' },
   { id: 'ai', number: '03', label: 'AI 服务' },
   { id: 'boundary', number: '04', label: '数据边界' },
 ];
 
 /** Tabbed settings. Only the selected panel mounts; arrow keys move between tabs. */
-export function SettingsTabs({ appearance, saving, onChange, github }: {
+export function SettingsTabs({ appearance, saving, onChange, git }: {
   appearance: Appearance | undefined;
   saving: boolean;
   onChange: (patch: Partial<Appearance>) => void;
-  github: GitHubController;
+  git: GitController;
 }) {
   const [tab, setTab] = useState<TabId>(TABS[0]!.id);
   const buttons = useRef<Array<HTMLButtonElement | null>>([]);
@@ -40,7 +41,7 @@ export function SettingsTabs({ appearance, saving, onChange, github }: {
 
   const panels: Record<TabId, ReactNode> = {
     appearance: <AppearanceSettings appearance={appearance} saving={saving} onChange={onChange} />,
-    github: <GitHubSettings github={github} />,
+    git: <GitSettings git={git} />,
     ai: <AiSettings />,
     boundary: <DataBoundary />,
   };

@@ -39,7 +39,23 @@
   border: 1px solid var(--line); border-radius: 3px; background: var(--ground);
 }
 
+/* Sub-tabs inside a panel: lighter than the numbered main tabs, still keyboard-driven. */
+.manager-workspace .settings-subtabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.manager-workspace .settings-subtabs button {
+  display: inline-flex; align-items: center; min-height: 36px; padding: 8px 15px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--paper);
+  color: var(--muted); font-size: 12.5px; cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+.manager-workspace .settings-subtabs button:hover { color: var(--ink); border-color: color-mix(in srgb, var(--muted) 45%, var(--line)); }
+.manager-workspace .settings-subtabs button[aria-selected="true"] { background: var(--soft); border-color: var(--accent); color: var(--ink); font-weight: 600; }
+.manager-workspace .settings-subtabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.manager-workspace .rule-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 18px; }
+.manager-workspace .rule-row > span { font-size: 12px; font-weight: 600; }
+.manager-workspace .rule-row .select-menu { min-width: 210px; }
+
 /* Fieldsets and legends replace the generic "card + shadow" rhythm. */
+
 .manager-workspace .settings-fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .manager-workspace .settings-fieldset > legend {
   padding: 0; margin: 0 0 18px; font-size: 11px; font-weight: 600; letter-spacing: .12em;

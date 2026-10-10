@@ -2,7 +2,7 @@
   "name": "amazing-stars",
   "version": "0.1.0",
   "private": true,
-  "description": "A local-first Chrome extension for your GitHub Stars.",
+  "description": "A local-first Chrome extension for your GitHub and Gitee Stars.",
   "license": "MIT",
   "type": "module",
   "packageManager": "pnpm@12.5.1",

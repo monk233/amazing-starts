@@ -293,3 +293,41 @@
 }
 /* Inside scrolling panels the tip opens downward so the container does not clip it. */
 .manager-workspace .filter-panel .info-tip-bubble { top: calc(100% + 9px); bottom: auto; }
+
+/* Categories: the rail is also a drop target, so a project can be moved by dragging it. */
+.manager-workspace .rail-category { display: flex; align-items: center; border-radius: 5px; }
+.manager-workspace .rail-category > button:first-child { flex: 1; min-width: 0; }
+.manager-workspace .rail-category .category-more {
+  display: grid; place-items: center; width: 28px; height: 28px; flex: none; margin-right: 4px; padding: 0;
+  border: 0; border-radius: 4px; background: transparent; color: var(--muted); opacity: 0; cursor: pointer;
+}
+.manager-workspace .rail-category:hover .category-more,
+.manager-workspace .rail-category:focus-within .category-more { opacity: 1; }
+.manager-workspace .rail-category .category-more:hover { background: var(--soft); color: var(--ink); }
+.manager-workspace .rail-category .category-more svg { width: 15px; height: 15px; }
+.manager-workspace .rail-category.drop-target { background: var(--soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.manager-workspace .new-category {
+  display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 8px; padding: 9px 12px;
+  border: 1px dashed var(--line); border-radius: 5px; background: transparent; color: var(--muted); font-size: 12px; cursor: pointer;
+}
+.manager-workspace .new-category:hover:not(:disabled) { color: var(--ink); border-color: var(--muted); }
+.manager-workspace .new-category svg { width: 15px; height: 15px; }
+.manager-workspace .unlisted-row { margin-top: 10px; }
+.manager-workspace .unlisted-row.drop-target { background: var(--soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.manager-workspace .unlisted-row .unlisted-link { margin-top: 0; }
+.manager-workspace .category-description { margin: 10px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; max-width: 70ch; }
+.manager-workspace .category-assign { margin-top: 14px; max-width: 240px; }
+.manager-workspace .drag-hint { margin: -10px 0 16px; color: var(--muted); font-size: 11px; }
+.manager-workspace .repo-row.dragging { opacity: .55; }
+
+/* Category editor: an inline form above the results, never a modal. */
+.manager-workspace .category-editor {
+  flex-shrink: 0; max-width: 620px; margin-bottom: 26px; padding: 18px 20px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--ground);
+}
+.manager-workspace .category-editor-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.manager-workspace .category-editor-head h2 { font-size: 16px; margin: 0; }
+.manager-workspace .category-editor .field + .field { margin-top: 16px; }
+.manager-workspace .category-editor textarea.field-input { resize: vertical; line-height: 1.7; font-family: inherit; }
+.manager-workspace .category-editor-actions { margin-top: 20px; }
+
