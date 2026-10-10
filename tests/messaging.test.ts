@@ -42,3 +42,68 @@ describe('仓库线索解析', () => {
     expect(repositoryFromUrl(url)).toBeNull();
   });
 });
+
+describe('AI 设置专用消息', () => {
+  const config = { baseUrl: 'https://provider.example/v1', apiKey: 'secret-test-key', model: '', remember: false };
+  const messages = [{ type: 'AI_READ' }, { type: 'AI_SAVE', config }, { type: 'AI_TEST', baseUrl: config.baseUrl }, { type: 'AI_MODELS', baseUrl: config.baseUrl }];
+  it('allows AI operations only on the manager page', () => {
+    for (const message of messages) {
+      expect(authorizeMessage(message, ui, id)?.type).toBe(message.type);
+      expect(authorizeMessage(message, content, id)).toBeNull();
+      expect(authorizeMessage(message, { ...ui, url: `chrome-extension://${id}/popup.html` }, id)).toBeNull();
+      expect(authorizeMessage({ ...message, url: 'https://evil.example' }, ui, id)).toBeNull();
+    }
+  });
+  it('does not add an arbitrary request or credential-reading interface', () => {
+    expect(authorizeMessage({ type: 'AI_MODELS' }, ui, id)).toBeNull();
+    expect(authorizeMessage({ type: 'AI_SAVE', config: { ...config, headers: {} } }, ui, id)).toBeNull();
+    expect(authorizeMessage({ type: 'READ_CREDENTIAL' }, ui, id)).toBeNull();
+  });
+});
+
+
+describe('收藏管理页消息', () => {
+  it('allows bounded local reads only from the manager', () => {
+    for (const accountId of [null, 'account-a']) {
+      const message = { type: 'LIBRARY_READ', accountId };
+      expect(authorizeMessage(message, ui, id)).toEqual(message);
+      expect(authorizeMessage(message, content, id)).toBeNull();
+      expect(authorizeMessage(message, { ...ui, url: 'chrome-extension://' + id + '/popup.html' }, id)).toBeNull();
+      expect(authorizeMessage({ ...message, table: 'credentials' }, ui, id)).toBeNull();
+    }
+  });
+  it('rejects missing, invalid and oversized account identifiers', () => {
+    for (const accountId of [undefined, '', ' ', 7, {}, 'a'.repeat(257)]) expect(authorizeMessage({ type: 'LIBRARY_READ', accountId }, ui, id)).toBeNull();
+  });
+});
+
+describe('GitHub privileged messages', () => {
+  it('accepts GitHub reads and validation from the settings hash route', () => {
+    const extensionId = 'epmelnmjmhfabpcllnpjmmhflbbnnkfm';
+    const sender = { id: extensionId, url: `chrome-extension://${extensionId}/manager.html#settings` };
+    for (const message of [{ type: 'GITHUB_READ' }, { type: 'GITHUB_CONNECT', token: 'test_personal_access_token_123', remember: false }]) {
+      expect(authorizeMessage(message, sender, extensionId)).toEqual(message);
+      expect(authorizeMessage(message, { ...sender, id: 'another-extension' }, extensionId)).toBeNull();
+    }
+  });
+  it('allows bounded commands only from the manager', () => {
+    for (const message of [{ type: 'GITHUB_READ' },
+      { type: 'GITHUB_CONNECT', token: 'test_personal_access_token_123', remember: false },
+      ...['GITHUB_SYNC', 'GITHUB_STEP', 'GITHUB_CANCEL_SYNC', 'GITHUB_DISCONNECT'].map(type => ({ type, accountId: 'U_a' }))]) {
+      expect(authorizeMessage(message, ui, id)).toEqual(message);
+      expect(authorizeMessage(message, content, id)).toBeNull();
+      expect(authorizeMessage(message, { ...ui, url: `chrome-extension://${id}/popup.html` }, id)).toBeNull();
+      expect(authorizeMessage({ ...message, secret: 'injected-token' }, ui, id)).toBeNull();
+      expect(authorizeMessage({ ...message, url: 'https://evil.test' }, ui, id)).toBeNull();
+    }
+  });
+  it('rejects credential reads, obsolete OAuth commands and arbitrary fields', () => {
+    for (const message of [{ type: 'GITHUB_TOKEN' }, { type: 'GITHUB_LOGIN', clientId: 'project-client-id', remember: false },
+      { type: 'GITHUB_POLL' }, { type: 'GITHUB_CANCEL_LOGIN' },
+      { type: 'GITHUB_CONNECT', token: 'test_personal_access_token_123', remember: false, scope: 'repo' },
+      { type: 'GITHUB_SYNC', accountId: '../../other-account' }, { type: 'GITHUB_STEP' }]) expect(authorizeMessage(message, ui, id)).toBeNull();
+  });
+  it.each(['', 'short', 'a'.repeat(1025), 'test_token_with\r\nheader', 'test_token_with spaces', 7, null])('rejects invalid tokens at the message boundary', token => {
+    expect(authorizeMessage({ type: 'GITHUB_CONNECT', token, remember: false }, ui, id)).toBeNull();
+  });
+});

@@ -4,7 +4,7 @@ export type ColorMode = 'light' | 'dark' | 'system';
 export interface Appearance { theme: Theme; mode: ColorMode }
 export interface Settings { version: 1; appearance: Appearance }
 export interface ScopedRecord { accountId: AccountId; id: string }
-export interface Account extends ScopedRecord { login: string; avatarUrl: string }
+export interface Account extends ScopedRecord { login: string; avatarUrl: string; lastSyncedAt?: string }
 export interface Repository extends ScopedRecord {
   fullName: string; description: string | null; language: string | null;
   topics: string[]; visibility: 'public' | 'private'; starredAt: string;

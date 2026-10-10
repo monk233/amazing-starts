@@ -20,7 +20,7 @@ a { color:var(--accent); text-underline-offset:4px; }
 ::selection { background:var(--accent); color:var(--accent-ink); }
 .shell { max-width:1080px; padding:30px 36px 60px; margin:auto; }
 .topbar { display:flex; justify-content:space-between; align-items:center; gap:20px; padding-bottom:26px; border-bottom:1px solid var(--line); }
-.brand { display:flex; align-items:center; gap:10px; font-size:21px; font-weight:650; letter-spacing:-.025em; text-decoration:none; color:var(--ink); }
+.brand { display:flex; align-items:center; gap:10px; font-size:28px; font-weight:650; letter-spacing:-.025em; text-decoration:none; color:var(--ink); }
 .brand svg { color:var(--accent); }
 .build-note { font-size:12px; color:var(--muted); }
 .navigation { display:flex; gap:24px; padding:22px 0 0; }
@@ -54,3 +54,14 @@ input { accent-color:var(--accent); }
 .popup .build-note { display:block; margin-top:8px; }
 @media(max-width:600px) { .shell { padding:22px 20px 40px; } .topbar { align-items:flex-start; flex-direction:column; gap:8px; } .empty { padding:32px 24px; } h1 { font-size:26px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+.mode-choice{position:relative;width:44px;height:44px;padding:0;justify-content:center;cursor:pointer}
+.mode-choice input{position:absolute;opacity:0;width:1px;height:1px}
+.mode-choice:has(input:checked){border-color:var(--accent);background:var(--soft);color:var(--accent)}
+.mode-choice:focus-within{outline:3px solid var(--accent);outline-offset:4px}
+.ai-settings{max-width:720px}
+.ai-settings label:not(.remember-key){display:block;margin:16px 0 8px;font-weight:600}
+.ai-settings input:not([type=checkbox]),.ai-settings select{width:100%;min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:7px;background:var(--paper);color:var(--ink);font:inherit}
+.remember-key{display:flex;align-items:center;gap:10px;margin-top:16px}
+.ai-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:24px}
+.ai-actions button:disabled{cursor:not-allowed}
+@media(max-width:600px){.brand{font-size:24px}}

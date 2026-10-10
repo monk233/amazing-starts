@@ -1,37 +1,37 @@
-# GitHub OAuth 配置准备
+# GitHub Access Token 配置
 
-状态：准备说明。M1 尚未实现真实 GitHub 登录，当前不需要把 Client ID 或 Token 放入源码。
+当前使用 Personal Access Token（PAT）连接 GitHub。无需注册 OAuth App、填写 Client ID 或 Client Secret，也不再显示 Device Flow 授权码。
 
-## 项目需要什么
+## 配置步骤
 
-使用项目自己的 GitHub OAuth App，并启用 Device Flow。不要使用 GitHub CLI 的 Client ID，不要把个人 gh 登录凭证复制进插件。
+1. 构建后在 Chrome 扩展管理页重新加载 `.output/chrome-mv3`，再刷新管理页面。
+2. 在 GitHub 的 Settings → Developer settings → Personal access tokens 中创建适合当前账号和访问范围的 Token。
+3. 打开扩展「设置与偏好 → GitHub」，粘贴到 Access Token 密码输入框。
+4. 默认不勾选“在此设备记住 Token”；如需跨浏览器重启保留凭证，可自行勾选。
+5. 点击“验证并保存”。后台读取账号身份，并测试 Stars、Lists 和首个可见 List 的 items 读取接口。通过后保存，页面显示实际用户名；输入框不会回填 Token。
+6. 点击该账号的“同步收藏”。所有分页完成前继续显示原有本地快照。
 
-注册过程属于账号权限变更，需要用户自行操作或另行明确授权。本轮没有创建 OAuth App。
+Token 仅通过 Authorization 请求头发送到固定的 `https://api.github.com`，不通过 URL、页面跳转或第三方服务发送。
 
-## 注册字段建议
+## 权限与有效期
 
-| 字段 | 内容 |
-| --- | --- |
-| Application name | amazing-starts |
-| Homepage URL | `https://github.com/monk233/amazing-starts` |
-| Application description | A local-first Chrome extension for organizing and browsing GitHub Stars. |
-| Authorization callback URL | 表单如要求填写，可使用项目主页；Device Flow 不通过该 URL 回调，当前没有实现回调服务器。 |
-| Enable Device Flow | 开启 |
+Token 的类型、权限、资源归属和组织策略会影响可见范围。扩展不自动请求更大的 scope，也不默认要求完整 `repo` 权限。
 
-注册完成后保留 OAuth App 的 Client ID。Client ID 是公开应用标识，不是 Client Secret。后续 M2 会提供项目 Client ID 的配置方式；当前不要编造一个值来让界面显示已连接。
+连接验证是少量只读请求，不代表每个 List 或所有私有仓库都已验证。没有 Lists 的账号无法预先验证真实 List items 的权限；后续同步遇到权限不足、组织限制、缺失数据或 GraphQL 部分错误时会停止，保留旧快照。实际最小权限仍需用你的 Token 验收。
 
-## 授权行为
+Token 过期或撤销后需要手动更换；没有自动刷新机制。401 会清除此账号已失效的本地凭证，保留账号资料、收藏快照和笔记。其他错误显示具体类型，不以空列表代替失败。
 
-真实流程应由用户点击登录后才开始：插件展示 user code、打开 GitHub 验证页，按服务端指定间隔轮询。实现需要处理等待、拒绝、取消、过期和 slow_down。
+## 本地存储与更换
 
-授权成功后重新读取账号身份，再按稳定用户 ID 隔离缓存和任务。当前账号不得由用户填写的 login 字符串代替。
+- 默认仅保存在浏览器会话存储中；勾选记住后写入本地存储。两者均限制为受信任的扩展上下文，不是加密保险箱。
+- 只有管理页可以发起连接，内容脚本和弹窗不能保存或读取 Token。后台回复不会包含 Token。
+- 验证新 Token 失败时保留旧凭证。验证成功后按实际 GitHub node ID 保存，不接受手填账号名决定存储账号。
+- 同一账号更换 Token 会取消尚未完成的暂存同步，防止将两种权限范围的分页拼成一个快照。可重新点击同步。
+- “移除此设备凭证”只删除指定账号的本地 Token 并取消同步，保留本地资料；在 GitHub 撤销 Token 是另外的操作。
+- 历史 OAuth 账号缓存保留。尚有效的旧 Access Token 可继续读取至失效，但不会继续 Device Flow 或自动刷新；成功保存 PAT 后清除旧 Client ID 和待授权记录。
 
-`createUserList` 的真实接口在前期操作中要求 `user` scope。该权限覆盖范围大于 Lists，需要在授权说明中诚实展示。后续实施按真实请求确认最小 scope，不默认复制本机 CLI 的完整 `repo` 权限。
+## 当前验收边界
 
-本项目的 Device Flow 不使用 Client Secret。不要在源码、构建产物、README、聊天或 Git 提交中放入 Client Secret、Access Token 或 Refresh Token。
+自动化测试使用模拟 HTTP / GraphQL 响应，覆盖验证保存、权限失败保留旧凭证、账号隔离、会话与持久存储切换、失效处理及现有完整分页同步。未使用用户真实 Token，也没有读取真实账户数据。
 
-## 当前边界
-
-M1 的管理页仅展示未接入状态；没有远端请求、模拟账号或自动授权。真实登录验收必须等 M2 接入并提供有效 Client ID 后进行。
-
-参考：`https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps`。
+官方参考：`https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens`。

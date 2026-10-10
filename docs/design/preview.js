@@ -1,4 +1,7 @@
 const icons = {
+  system:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M5 19l1.5-1.5M17.5 6.5 19 5"/>',
+  moon:'<path d="M21 13a9 9 0 0 1-10-10A9 9 0 1 0 21 13Z"/>',
   star:'<path d="m12 2 2.8 7.2L22 12l-7.2 2.8L12 22l-2.8-7.2L2 12l7.2-2.8Z"/><circle cx="12" cy="12" r="2"/>',
   collection:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 9v11"/>',
   repository:'<path d="M5 3h12a2 2 0 0 1 2 2v16H7a3 3 0 0 1 0-6h12M5 3v15M9 7h6"/>',
@@ -39,7 +42,7 @@ function detail(){
   return `${header('仓库详情')}<div class="page-title"><div class="detail-heading"><span class="repo-monogram">${selected.letter}</span><div><small>${selected.owner} /</small><h1>${selected.name}</h1></div></div><button class="outline-button" data-notice="此按钮展示未来的 GitHub 入口，本预览不打开外部网站。">${icon('external')}GitHub</button></div><p class="setting-note">${selected.description}</p><div class="view-tabs"><span class="active">收藏手册</span><span>项目概览</span><span>动态记录</span></div><div class="detail-columns"><article class="article"><h2>为什么收藏它</h2><p>${selected.detail}</p><h3>适合什么时候打开</h3><ul><li>为正在做的项目寻找成熟的开源方案。</li><li>研究实现方式，记录值得参考的产品细节。</li><li>与同类工具一起比较，找到更符合自己需求的选择。</li></ul><blockquote>给未来的自己：不急着研究完，先记下这次收藏的原因。</blockquote><h3>我的下一步</h3><p>阅读项目文档，了解部署条件，再决定是否放入“正在使用”。</p><div class="source-note">此手册为人工编写的视觉示例，未调用 AI，也不是对当前仓库状态的实时分析。</div></article><aside class="side-note"><h2>它在我的收藏里</h2><div class="dimension"><h3>GitHub 分类 · 演示</h3><div class="tags"><span class="tag">${selected.group}项目</span></div></div><div class="dimension"><h3>使用状态 · 本地</h3><div class="tags"><span class="tag">待探索</span></div></div><div class="dimension"><h3>关注理由 · 本地</h3><div class="tags"><span class="tag">值得研究</span><span class="tag">灵感来源</span></div></div><button class="small-link" style="background:none;border:0" data-notice="手册编辑与分类操作将在后续阶段接入。">编辑整理方式 ${icon('arrow')}</button><div class="local-label">${icon('lock')}私人手册不会自动公开</div></aside></div>`;
 }
 function settings(){
- return `${header('设置与偏好')}<div class="page-title"><div><h1>让工作区，更像你。</h1><p>自己的主题、自己的模型，自己的整理习惯。</p></div>${art()}</div><div class="settings-layout"><section class="setting-section"><div><h2>外观</h2><p class="caption">艺术主题与明暗模式<br>可以分别选择。</p></div><div><div class="theme-options"><button class="theme-option" data-world="folio" aria-pressed="${world==='folio'}"><span class="miniature"><i></i><b></b></span><strong>纸页收藏馆</strong></button><button class="theme-option" data-world="observatory" aria-pressed="${world==='observatory'}"><span class="miniature dark"><i></i><b></b></span><strong>轨道观测室</strong></button></div><div class="settings-modes">${[['system','跟随系统'],['light','亮色'],['dark','暗色']].map(([value,label])=>`<button data-mode="${value}" aria-pressed="${mode===value}">${label}</button>`).join('')}</div></div></section><section class="setting-section"><div><h2>GitHub 账号</h2><p class="caption">收藏与分类来自 GitHub。</p></div><div><div class="account-demo"><span class="avatar">A</span><div><strong>尚未连接</strong><small>预览页面不会读取真实账号</small></div></div><p class="setting-note">后续使用 GitHub Device Flow 授权，不需要在插件中放入 Client Secret。</p></div></section><section class="setting-section"><div><h2>AI 服务</h2><p class="caption">由你选择服务商。<br>未配置也能手动管理。</p></div><div><label>Base URL<input aria-label="Base URL 示例，不可编辑" readonly value="https://your-provider.example/v1"></label><label>模型名称<input aria-label="模型名称示例，不可编辑" readonly value="填写你自己的模型名称"></label><p class="setting-note">这是只读视觉示例，不采集 API Key。真实配置表单将在后续阶段接入。</p></div></section><section class="setting-section"><div><h2>管理规则</h2><p class="caption">自动管理也尊重你的决定。</p></div><p class="setting-note">优先使用已有分类；保留手动调整；新分类先确认。模型没有把握时，把决定留给你。</p></section></div>`;
+ return `${header('设置与偏好')}<div class="page-title"><div><h1>让工作区，更像你。</h1><p>自己的主题、自己的模型，自己的整理习惯。</p></div>${art()}</div><div class="settings-layout"><section class="setting-section"><div><h2>外观</h2><p class="caption">艺术主题与明暗模式<br>可以分别选择。</p></div><div><div class="theme-options"><button class="theme-option" data-world="folio" aria-pressed="${world==='folio'}"><span class="miniature"><i></i><b></b></span><strong>纸页收藏馆</strong></button><button class="theme-option" data-world="observatory" aria-pressed="${world==='observatory'}"><span class="miniature dark"><i></i><b></b></span><strong>轨道观测室</strong></button></div><div class="settings-modes">${[['system','跟随系统'],['light','亮色'],['dark','暗色']].map(([value,label])=>`<button data-mode="${value}" aria-label="${label}" title="${label}" aria-pressed="${mode===value}">${icon(value==='system'?'system':value==='light'?'sun':'moon')}</button>`).join('')}</div></div></section><section class="setting-section"><div><h2>GitHub 账号</h2><p class="caption">收藏与分类来自 GitHub。</p></div><div><div class="account-demo"><span class="avatar">A</span><div><strong>尚未连接</strong><small>预览页面不会读取真实账号</small></div></div><p class="setting-note">后续使用 GitHub Device Flow 授权，不需要在插件中放入 Client Secret。</p></div></section><section class="setting-section"><div><h2>AI 服务</h2><p class="caption">由你选择服务商。<br>未配置也能手动管理。</p></div><div><label>Base URL<input aria-label="Base URL 示例，不可编辑" readonly value="https://your-provider.example/v1"></label><label>模型名称<input aria-label="模型名称示例，不可编辑" readonly value="填写你自己的模型名称"></label><p class="setting-note">这是只读视觉示例，不采集 API Key。API Key、测试连接和模型目录请在已加载扩展的设置页使用。</p></div></section><section class="setting-section"><div><h2>管理规则</h2><p class="caption">自动管理也尊重你的决定。</p></div><p class="setting-note">优先使用已有分类；保留手动调整；新分类先确认。模型没有把握时，把决定留给你。</p></section></div>`;
 }
 function render(){
   const current=view();
@@ -53,7 +56,12 @@ function render(){
 }
 function applyMode(){
  document.documentElement.dataset.mode=mode==='system'?(media.matches?'dark':'light'):mode;
- document.querySelector('#mode').value=mode;
+ const toggle=document.querySelector('#mode-toggle');
+ const isDark=document.documentElement.dataset.mode==='dark';
+ const label=isDark?'切换至亮色':'切换至暗色';
+ toggle.innerHTML=icon(isDark?'sun':'moon');
+ toggle.setAttribute('aria-label',label);
+ toggle.title=label;
  document.querySelectorAll('button[data-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.mode===mode)));
 }
 function applyWorld(value){
@@ -65,6 +73,7 @@ function applyWorld(value){
 let toastTimer;
 document.addEventListener('click',event=>{
  const button=event.target.closest('button'); if(!button)return;
+ if(button.id==='mode-toggle'){mode=document.documentElement.dataset.mode==='dark'?'light':'dark';applyMode();return;}
  if(button.dataset.world){applyWorld(button.dataset.world);return;}
  if(button.dataset.mode){mode=button.dataset.mode;applyMode();return;}
  if(button.dataset.filter){filter=button.dataset.filter;if(view()!=='library')location.hash='library';else render();return;}
@@ -72,7 +81,6 @@ document.addEventListener('click',event=>{
  if(button.dataset.notice){const toast=document.querySelector('#toast');toast.textContent=button.dataset.notice;toast.hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.hidden=true,4000);}
 });
 document.querySelectorAll('[data-icon]').forEach(element=>element.innerHTML=icon(element.dataset.icon));
-document.querySelector('#mode').addEventListener('change',event=>{mode=event.target.value;applyMode();});
 media.addEventListener('change',applyMode);
 window.addEventListener('hashchange',render);
 render();applyMode();

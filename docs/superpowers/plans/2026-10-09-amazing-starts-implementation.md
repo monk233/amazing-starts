@@ -76,7 +76,9 @@ M1 可以建立后台与数据基础，但正式艺术化 UI 必须遵循 M0 已
 - 网页脚本不能取回凭证，也不能让后台请求任意 URL。
 - 本阶段不显示已连接 GitHub 的假状态。
 
-## M2：GitHub Device Flow、Stars 与 Lists 同步
+## M2：GitHub Access Token、Stars 与 Lists 同步
+
+2026-10-10 用户确认调整：使用 Personal Access Token 替代 Device Flow；以下早期 OAuth 条目由“填写 Token → 验证账号及读取接口 → 同步收藏”替代。无需用户注册 OAuth App 或配置 Client ID。当前实现及验收以 README、GitHub 配置文档和最新验证记录为准。
 
 ### 计划文件
 

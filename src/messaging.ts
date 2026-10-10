@@ -1,16 +1,20 @@
+import { githubMessage, type GitHubMessage, type GitHubState } from './github/types';
+import type { Library } from './library/library';
+import { isAiInput, type AiInput, type AiState } from './ai/config';
 import { isAppearance } from './data/settings';
 import type { Appearance, Settings } from './data/types';
 
 export interface Sender { id?: string; url?: string; tab?: unknown }
 export type ContentMessage = { type: 'CONTENT_READY'; repository: string | null };
-export type UiMessage = { type: 'GET_STATUS' } | { type: 'OPEN_MANAGER' } |
-  { type: 'SET_APPEARANCE'; appearance: Appearance };
+export type UiMessage = GitHubMessage | { type: 'LIBRARY_READ'; accountId: string | null } | { type: 'GET_STATUS' } | { type: 'OPEN_MANAGER' } |
+  { type: 'SET_APPEARANCE'; appearance: Appearance } | { type: 'AI_READ' } |
+  { type: 'AI_SAVE'; config: AiInput } | { type: 'AI_MODELS' | 'AI_TEST'; baseUrl: string };
 export type Message = ContentMessage | UiMessage;
 export interface Status {
-  phase: 'foundation'; github: 'not_implemented'; ai: 'not_implemented';
+  phase: 'github'; github: 'access_token'; ai: 'configuration';
   settings: Settings; database: 'ready';
 }
-export type Reply = { ok: true; value: Status | Settings | { acknowledged: true } } |
+export type Reply = { ok: true; value: GitHubState | Library | Status | Settings | AiState | { models: string[] } | { modelCount: number } | { acknowledged: true } } |
   { ok: false; error: string };
 
 const UI_PATHS = new Set(['/manager.html', '/popup.html']);
@@ -35,6 +39,18 @@ export function authorizeMessage(input: unknown, sender: Sender, extensionId: st
   try { url = new URL(sender.url); } catch { return null; }
   const trustedUi = url.protocol === 'chrome-extension:' && url.hostname === extensionId && UI_PATHS.has(url.pathname);
   if (trustedUi) {
+    if (url.pathname === '/manager.html') {
+      const github = githubMessage(input);
+      if (github) return github;
+      if (input.type === 'LIBRARY_READ' && Object.keys(input).length === 2 && (input.accountId === null || (typeof input.accountId === 'string' && input.accountId.trim().length > 0 && input.accountId.length <= 256))) {
+        return { type: 'LIBRARY_READ', accountId: input.accountId };
+      }
+      if (input.type === 'AI_READ' && Object.keys(input).length === 1) return { type: 'AI_READ' };
+      if (input.type === 'AI_SAVE' && Object.keys(input).length === 2 && isAiInput(input.config)) return { type: 'AI_SAVE', config: input.config };
+      if ((input.type === 'AI_MODELS' || input.type === 'AI_TEST') && Object.keys(input).length === 2 && typeof input.baseUrl === 'string' && input.baseUrl.length <= 2048) {
+        return { type: input.type, baseUrl: input.baseUrl };
+      }
+    }
     if ((input.type === 'GET_STATUS' || input.type === 'OPEN_MANAGER') && Object.keys(input).length === 1) return input as UiMessage;
     if (input.type === 'SET_APPEARANCE' && Object.keys(input).length === 2 && isAppearance(input.appearance)) {
       return { type: input.type, appearance: input.appearance };

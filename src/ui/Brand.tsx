@@ -5,5 +5,5 @@ export function StarMark({ size = 25 }: { size?: number }) {
   </svg>;
 }
 export function Brand() {
-  return <span className="brand"><StarMark />amazing-starts</span>;
+  return <span className="brand"><StarMark /><span>Amazing Starts</span></span>;
 }

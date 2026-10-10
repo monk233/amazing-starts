@@ -1,4 +1,4 @@
-import type { Table, Tables } from './types';
+import type { Account, Job, List, Membership, Repository, Table, Tables } from './types';
 
 export const DATABASE_NAME = 'amazing-starts';
 export const DATABASE_VERSION = 1;
@@ -33,6 +33,14 @@ export class LocalDatabase {
 
   close(): void { this.database.close(); }
 
+  async accounts(): Promise<Account[]> {
+    const tx = this.database.transaction('accounts', 'readonly');
+    const [accounts] = await Promise.all([
+      result(tx.objectStore('accounts').getAll() as IDBRequest<Account[]>), completion(tx),
+    ]);
+    return accounts;
+  }
+
   async put<K extends Table>(table: K, accountId: string, record: Tables[K]): Promise<void> {
     assertKey(accountId); assertKey(record.id);
     if (record.accountId !== accountId) throw new Error('拒绝跨账号写入。');
@@ -65,6 +73,43 @@ export class LocalDatabase {
       result(tx.objectStore(table).index('accountId').getAll(accountId) as IDBRequest<Tables[K][]>), done,
     ]);
     return records;
+  }
+
+  async commitGitHubSnapshot(account: Account, snapshot: { repositories: Repository[]; lists: List[]; memberships: Membership[] }, job: Job): Promise<void> {
+    const accountId = account.accountId;
+    const replacements = { accounts: [account], ...snapshot, jobs: [job] };
+    assertKey(accountId);
+    for (const records of Object.values(replacements)) {
+      const ids = new Set<string>();
+      for (const item of records) {
+        assertKey(item.id);
+        if (item.accountId !== accountId) throw new Error('拒绝跨账号替换。');
+        if (ids.has(item.id)) throw new Error('快照包含重复 ID，原数据未被替换。');
+        ids.add(item.id);
+      }
+    }
+    const repositories = new Set(snapshot.repositories.map(item => item.id));
+    const lists = new Set(snapshot.lists.map(item => item.id));
+    if (snapshot.memberships.some(item => !repositories.has(item.repositoryId) || !lists.has(item.listId))) throw new Error('快照包含无效归属，原数据未被替换。');
+    const tx = this.database.transaction(['accounts', 'repositories', 'lists', 'memberships', 'jobs'], 'readwrite');
+    const done = completion(tx);
+    try {
+      tx.objectStore('accounts').put(account);
+      tx.objectStore('jobs').put(job);
+      for (const table of ['repositories', 'lists', 'memberships'] as const) {
+        const store = tx.objectStore(table);
+        const cursor = store.index('accountId').openCursor(accountId);
+        cursor.onsuccess = () => {
+          const current = cursor.result;
+          if (current) { current.delete(); current.continue(); return; }
+          try { for (const item of snapshot[table]) store.put(item); }
+          catch { tx.abort(); }
+        };
+      }
+    } catch (error: unknown) {
+      tx.abort(); await done.catch(() => undefined); throw error;
+    }
+    await done;
   }
 
   // A complete snapshot is replaced in one transaction; incomplete network pages must never call this method.
